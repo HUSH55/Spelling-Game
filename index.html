@@ -1,225 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Smart Spelling Game</title>
+  <meta charset="UTF-8">
+  <title>SpellMaster 3000</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f8ff;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
     }
-    input, button {
-      font-size: 1.2rem;
-      padding: 0.5rem;
-      margin: 0.5rem 0;
+    .hidden { display: none; }
+    .correct { color: green; animation: bounce 0.5s; }
+    .incorrect { color: red; animation: shake 0.3s; }
+    @keyframes bounce {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
     }
-    #game-section {
-      margin-top: 2rem;
-    }
-    #result {
-      margin-top: 1rem;
-      font-weight: bold;
-      min-height: 1.5rem;
-    }
-    #struggle-list {
-      margin-top: 1rem;
-      display: none;
-      background: #fff9c4;
-      border: 1px solid #fbc02d;
-      padding: 1rem;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-    #pause-btn {
-      margin-left: 1rem;
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
     }
   </style>
 </head>
 <body>
-  <h1>Smart Spelling Game</h1>
 
-  <div id="login-section">
-    <input type="text" id="username" placeholder="Enter username" />
-    <input type="password" id="pin" placeholder="Enter PIN" />
-    <button onclick="login()">Login / Register</button>
-    <div id="login-message" style="color: red; margin-top: 0.5rem;"></div>
-  </div>
+  <h1>SpellMaster 3000 🔤</h1>
+  <p><strong>Word:</strong> <span id="currentWord">🎧 Listen and Spell</span></p>
+  <input type="text" id="answerInput" placeholder="Type here..." autofocus />
+  <button onclick="checkAnswer()">Submit</button>
+  <p id="feedback"></p>
 
-  <div id="game-section" style="display:none;">
-    <p>Type the word you hear:</p>
-    <button id="play-btn" onclick="playWord()">🔊 Play Word</button>
-    <input type="text" id="input" autocomplete="off" />
-    <button onclick="checkAnswer()">Submit</button>
-    <button id="pause-btn" onclick="togglePause()">Pause</button>
-    <div id="result"></div>
-    <div id="struggle-list">
-      <strong>Words you struggle with most:</strong>
-      <ul id="struggle-ul"></ul>
-    </div>
-  </div>
+  <hr>
+
+  <p>XP: <span id="xp">0</span> | Level: <span id="level">1</span> | Streak: <span id="streak">0</span></p>
+  <p>Bonus Word: <span id="bonusWordDisplay">Loading...</span></p>
+
+  <hr>
+
+  <button onclick="playWord()">🔊 Hear Word Again</button>
+  <select id="voiceSelect"></select>
+
+  <hr>
+
+  <h3>Achievements 🏅</h3>
+  <ul id="achievements"></ul>
+
+  <h3>Top 5 Local Scores 🏆</h3>
+  <ol id="leaderboard"></ol>
+
+  <h3>Goblin Says:</h3>
+  <p id="goblin">I’m watching your spelling skills... 👀</p>
 
   <script>
-    // Sample word list - extend as you want
-    const WORDS = [
-      "cat", "dog", "sun", "tree", "fish", "planet", "market", "family", "library", "bottle",
-      "entrepreneur", "satellite", "architecture", "opportunity", "innovation", "achievement",
-      "development", "education", "technology", "environment", "dictionary", "government"
-    ];
-
-    let currentUser = null;
-    let userData = null;
+    const words = ["apple", "banana", "cherry", "dragon", "elephant", "falcon", "goblin", "helmet", "island", "jungle"];
     let currentWord = "";
-    let paused = false;
+    let bonusWord = "";
+    let userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    let synth = window.speechSynthesis;
+    let voices = [];
 
-    // Load or create user data from localStorage
-    function loadUserData(username, pin) {
-      const saved = localStorage.getItem("spelling-users");
-      let users = saved ? JSON.parse(saved) : {};
-      if (users[username]) {
-        if (users[username].pin === pin) {
-          return users[username];
-        } else {
-          return null; // wrong pin
-        }
-      }
-      // new user
-      users[username] = {
-        pin: pin,
-        mistakes: {},
-        mastered: []
-      };
-      localStorage.setItem("spelling-users", JSON.stringify(users));
-      return users[username];
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      const selectedVoice = document.getElementById("voiceSelect").value;
+      utterance.voice = voices.find(v => v.name === selectedVoice);
+      synth.speak(utterance);
     }
 
-    // Save user data back to localStorage
-    function saveUserData() {
-      const saved = localStorage.getItem("spelling-users");
-      let users = saved ? JSON.parse(saved) : {};
-      users[currentUser] = userData;
-      localStorage.setItem("spelling-users", JSON.stringify(users));
+    function getRandomWord() {
+      return words[Math.floor(Math.random() * words.length)];
     }
 
-    function login() {
-      const username = document.getElementById("username").value.trim().toLowerCase();
-      const pin = document.getElementById("pin").value.trim();
-      const message = document.getElementById("login-message");
-      message.textContent = "";
-      if (!username || !pin) {
-        message.textContent = "Please enter username and PIN.";
-        return;
-      }
-      const data = loadUserData(username, pin);
-      if (data === null) {
-        message.textContent = "Incorrect PIN for this username.";
-        return;
-      }
-      currentUser = username;
-      userData = data;
-      document.getElementById("login-section").style.display = "none";
-      document.getElementById("game-section").style.display = "block";
-      document.getElementById("input").focus();
-      playWord();
+    function updateStatsDisplay() {
+      document.getElementById("xp").textContent = userData.xp || 0;
+      document.getElementById("level").textContent = userData.level || 1;
+      document.getElementById("streak").textContent = userData.streak || 0;
     }
 
-    function getNextWord() {
-      // Filter out mastered words
-      const candidates = WORDS.filter(w => !userData.mastered.includes(w));
-      if (candidates.length === 0) {
-        return null; // All mastered
-      }
-      // Randomly pick from candidates
-      return candidates[Math.floor(Math.random() * candidates.length)];
+    function updateLeaderboard() {
+      const scores = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+      scores.sort((a, b) => b.xp - a.xp);
+      const top5 = scores.slice(0, 5);
+      document.getElementById("leaderboard").innerHTML = top5.map(s => `<li>${s.name || "Player"} - ${s.xp} XP</li>`).join("");
     }
 
-    function speakWord(word) {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(word);
-        utterance.lang = 'en-GB';
-        utterance.rate = 0.6;  // slower rate for clarity
-        utterance.pitch = 1.2; // slightly higher pitch
-        speechSynthesis.speak(utterance);
+    function unlockAchievements() {
+      const list = [];
+      if ((userData.totalCorrect || 0) >= 5) list.push("🎯 Flawless 5");
+      if ((userData.totalCorrect || 0) >= 20) list.push("💡 Spelling Guru");
+      if ((userData.streak || 0) >= 10) list.push("🔥 10 Streak Master");
+
+      document.getElementById("achievements").innerHTML = list.map(a => `<li>${a}</li>`).join("");
+    }
+
+    function updateBonusWord() {
+      const today = new Date().toDateString();
+      if (userData.lastBonusDay !== today) {
+        bonusWord = getRandomWord();
+        userData.lastBonusDay = today;
+        userData.bonusWord = bonusWord;
       } else {
-        alert("Speech synthesis not supported in this browser.");
+        bonusWord = userData.bonusWord;
       }
+      document.getElementById("bonusWordDisplay").textContent = bonusWord;
+    }
+
+    function saveUserData() {
+      localStorage.setItem("userData", JSON.stringify(userData));
     }
 
     function playWord() {
-      if (paused) return;
-      currentWord = getNextWord();
-      if (!currentWord) {
-        document.getElementById("result").textContent = "🎉 You have mastered all words!";
-        return;
-      }
-      speakWord(currentWord);
-      document.getElementById("input").value = "";
-      document.getElementById("result").textContent = "";
+      speak(currentWord);
+    }
+
+    function pickNewWord() {
+      currentWord = getRandomWord();
+      playWord();
+    }
+
+    function updateGoblinFeedback(success) {
+      const phrases = success
+        ? ["Not bad, human.", "Impressive!", "You're smarter than you look."]
+        : ["Wrong again? Tsk tsk...", "Even my goblin cousin could do better!", "I expected more from you!"];
+      document.getElementById("goblin").textContent = phrases[Math.floor(Math.random() * phrases.length)];
     }
 
     function checkAnswer() {
-      if (paused) return;
-      const input = document.getElementById("input").value.trim().toLowerCase();
-      if (!currentWord) return;
-      if (input === currentWord.toLowerCase()) {
-        document.getElementById("result").textContent = "✅ Correct!";
-        // Remove word from mistakes (reset if mastered)
-        delete userData.mistakes[currentWord];
-        if (!userData.mastered.includes(currentWord)) {
-          userData.mastered.push(currentWord);
-        }
-        saveUserData();
-        setTimeout(playWord, 1500);
+      const input = document.getElementById("answerInput").value.toLowerCase().trim();
+      const feedback = document.getElementById("feedback");
+
+      if (!userData.wordStats) userData.wordStats = {};
+      userData.wordStats[currentWord] = userData.wordStats[currentWord] || { correct: 0, total: 0 };
+      userData.wordStats[currentWord].total++;
+
+      if (input === currentWord) {
+        feedback.textContent = "✅ Correct!";
+        feedback.className = "correct";
+        userData.totalCorrect = (userData.totalCorrect || 0) + 1;
+        userData.streak = (userData.streak || 0) + 1;
+        let points = 5;
+        if (currentWord === bonusWord) points *= 2;
+        userData.xp = (userData.xp || 0) + points;
+        userData.level = Math.floor(userData.xp / 50) + 1;
+        userData.wordStats[currentWord].correct++;
       } else {
-        document.getElementById("result").textContent = `❌ Incorrect. Try again.`;
-        // Track mistake count
-        userData.mistakes[currentWord] = (userData.mistakes[currentWord] || 0) + 1;
-        saveUserData();
+        feedback.textContent = "❌ Try Again!";
+        feedback.className = "incorrect";
+        userData.streak = 0;
       }
+
+      updateGoblinFeedback(input === currentWord);
+      updateStatsDisplay();
+      unlockAchievements();
+      saveUserData();
+
+      document.getElementById("answerInput").value = "";
+      setTimeout(pickNewWord, 1000);
+
+      // Save to leaderboard
+      let scores = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+      scores.push({ name: "You", xp: userData.xp || 0 });
+      localStorage.setItem("leaderboard", JSON.stringify(scores));
+      updateLeaderboard();
     }
 
-    function togglePause() {
-      paused = !paused;
-      const btn = document.getElementById("pause-btn");
-      if (paused) {
-        btn.textContent = "Resume";
-        showStruggleWords();
-      } else {
-        btn.textContent = "Pause";
-        document.getElementById("struggle-list").style.display = "none";
-        document.getElementById("result").textContent = "";
-        playWord();
-      }
+    function populateVoiceList() {
+      voices = synth.getVoices();
+      const voiceSelect = document.getElementById("voiceSelect");
+      voiceSelect.innerHTML = voices.map(v => `<option>${v.name}</option>`).join("");
     }
 
-    function showStruggleWords() {
-      const struggleDiv = document.getElementById("struggle-list");
-      const struggleUl = document.getElementById("struggle-ul");
-      struggleUl.innerHTML = "";
-      let words = Object.entries(userData.mistakes);
-      if (words.length === 0) {
-        struggleUl.innerHTML = "<li>None yet! Keep playing.</li>";
-      } else {
-        words.sort((a, b) => b[1] - a[1]); // sort desc by mistakes
-        words.forEach(([word, count]) => {
-          let li = document.createElement("li");
-          li.textContent = `${word} — mistakes: ${count}`;
-          struggleUl.appendChild(li);
-        });
-      }
-      struggleDiv.style.display = "block";
-    }
-
-    // Add Enter key listener on the input box to submit answer
-    document.getElementById("input").addEventListener("keydown", function(event) {
-      if (event.key === "Enter") {
-        event.preventDefault(); // prevent form submission if any
-        checkAnswer();
-      }
-    });
+    // Load everything
+    window.onload = function () {
+      populateVoiceList();
+      synth.onvoiceschanged = populateVoiceList;
+      userData.xp ||= 0;
+      userData.level ||= 1;
+      userData.streak ||= 0;
+      updateBonusWord();
+      updateStatsDisplay();
+      unlockAchievements();
+      updateLeaderboard();
+      pickNewWord();
+    };
   </script>
+
 </body>
 </html>
