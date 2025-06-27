@@ -16,6 +16,7 @@ export default function WordGame() {
   const [hint, setHint] = useState("");
   const [level, setLevel] = useState(1);
   const [showEvolution, setShowEvolution] = useState(false);
+  const [userInput, setUserInput] = useState("");
   const synthRef = useRef(window.speechSynthesis);
 
   const speakWord = (word) => {
@@ -48,6 +49,17 @@ export default function WordGame() {
       setXp(xp + 10);
       setHint("");
     }
+  };
+
+  const handleSubmitAnswer = () => {
+    const correctWord = words[currentWordIndex];
+    if (userInput.trim().toLowerCase() === correctWord.toLowerCase()) {
+      setXp((prev) => prev + 10);
+      handleNext();
+    } else {
+      handleWrongAnswer();
+    }
+    setUserInput("");
   };
 
   const togglePause = () => {
@@ -117,9 +129,18 @@ export default function WordGame() {
             )}
           </AnimatePresence>
 
-          <h1 className="text-2xl font-bold mb-2">Current Word</h1>
+          <h1 className="text-2xl font-bold mb-2">Type What You Hear</h1>
           {!isPaused ? (
-            <p className="text-xl mb-4">{words[currentWordIndex]}</p>
+            <div className="mb-4">
+              <input
+                type="text"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                className="border border-gray-300 p-2 rounded w-full text-center"
+                placeholder="Type the word you heard..."
+              />
+              <Button onClick={handleSubmitAnswer} className="mt-2 w-full">Submit</Button>
+            </div>
           ) : (
             <div className="mb-4">
               <p className="text-red-500 font-semibold">Game Paused</p>
