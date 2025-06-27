@@ -2,12 +2,19 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Volume2, Pause, Play, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import {
+  Pause,
+  Play,
+  ChevronDown,
+  ChevronUp,
+  HelpCircle,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const words = ["apple", "banana", "cherry", "date", "elderberry"];
 
 export default function WordGame() {
+  // State hooks
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [wrongWords, setWrongWords] = useState({});
   const [isPaused, setIsPaused] = useState(false);
@@ -16,18 +23,24 @@ export default function WordGame() {
   const [hint, setHint] = useState("");
   const [level, setLevel] = useState(1);
   const [showEvolution, setShowEvolution] = useState(false);
-  const [userInput, setUserInput] = useState("");
+
+  // Reference to speech synthesis API
   const synthRef = useRef(window.speechSynthesis);
 
+  // Speak the current word
   const speakWord = (word) => {
     const utterance = new SpeechSynthesisUtterance(word);
     synthRef.current.speak(utterance);
   };
 
+  // Speak word on index change or unpause
   useEffect(() => {
-    if (!isPaused) speakWord(words[currentWordIndex]);
+    if (!isPaused) {
+      speakWord(words[currentWordIndex]);
+    }
   }, [currentWordIndex, isPaused]);
 
+  // Update level based on XP and show evolution message
   useEffect(() => {
     const newLevel = Math.max(1, Math.floor(xp / 100) + 1);
     if (newLevel !== level) {
@@ -35,38 +48,39 @@ export default function WordGame() {
       setShowEvolution(true);
       setTimeout(() => setShowEvolution(false), 3000);
     }
-  }, [xp]);
+  }, [xp, level]);
 
-  const handleWrongAnswer = () => {
+  // Handler for "Try Again" button: track wrong answer and speak word
+  const handleTryAgain = () => {
     const word = words[currentWordIndex];
-    setWrongWords((prev) => ({ ...prev, [word]: (prev[word] || 0) + 1 }));
-    if (xp > 0) setXp((prev) => Math.max(0, prev - 10));
+    setWrongWords((prev) => ({
+      ...prev,
+      [word]: (prev[word] || 0) + 1,
+    }));
+    if (xp > 0) {
+      setXp((prev) => Math.max(0, prev - 10));
+    }
+    speakWord(word);
   };
 
+  // Handler for moving to next word
   const handleNext = () => {
     if (currentWordIndex < words.length - 1) {
       setCurrentWordIndex(currentWordIndex + 1);
-      setXp(xp + 10);
+      setXp((prev) => prev + 10);
       setHint("");
     }
   };
 
-  const handleSubmitAnswer = () => {
-    const correctWord = words[currentWordIndex];
-    if (userInput.trim().toLowerCase() === correctWord.toLowerCase()) {
-      setXp((prev) => prev + 10);
-      handleNext();
-    } else {
-      handleWrongAnswer();
-    }
-    setUserInput("");
-  };
-
+  // Pause/play toggle and cancel speech on pause
   const togglePause = () => {
-    setIsPaused(!isPaused);
-    if (!isPaused) synthRef.current.cancel();
+    setIsPaused((prev) => {
+      if (!prev) synthRef.current.cancel();
+      return !prev;
+    });
   };
 
+  // Provide a hint for the current word
   const getHint = () => {
     const word = words[currentWordIndex];
     setHint(`Starts with: ${word.charAt(0)}, Length: ${word.length}`);
@@ -76,21 +90,30 @@ export default function WordGame() {
     <div className="p-4 max-w-md mx-auto">
       <Card className="text-center p-6">
         <CardContent>
+          {/* Control Buttons */}
           <div className="flex justify-between items-center mb-4">
-            <Button onClick={togglePause} variant="outline">
+            <Button onClick={togglePause} variant="outline" aria-label="Pause or Play">
               {isPaused ? <Play /> : <Pause />}
             </Button>
-            <Button onClick={() => setShowAchievements(!showAchievements)} variant="outline">
+            <Button
+              onClick={() => setShowAchievements((prev) => !prev)}
+              variant="outline"
+              aria-expanded={showAchievements}
+              aria-controls="leaderboard-section"
+            >
               {showAchievements ? <ChevronUp /> : <ChevronDown />} Leaderboard
             </Button>
-            <Button onClick={getHint} variant="outline">
-              <HelpCircle /> Hint
+            <Button onClick={getHint} variant="outline" aria-label="Get a hint">
+              <HelpCircle />
+              Hint
             </Button>
           </div>
 
+          {/* Leaderboard Section */}
           <AnimatePresence>
             {showAchievements && (
               <motion.div
+                id="leaderboard-section"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -116,6 +139,7 @@ export default function WordGame() {
             )}
           </AnimatePresence>
 
+          {/* Evolution Notification */}
           <AnimatePresence>
             {showEvolution && (
               <motion.div
@@ -124,46 +148,63 @@ export default function WordGame() {
                 exit={{ scale: 0.8, opacity: 0 }}
                 className="mb-4 p-4 rounded-lg bg-yellow-200 font-bold"
               >
-                {`Your creature has ${level > Math.floor(xp / 100) + 1 ? "evolved" : "devolved"}! Now at Level ${level}`}
+                {`Your creature has ${
+                  level > Math.floor(xp / 100) + 1 ? "evolved" : "devolved"
+                }! Now at Level ${level}`}
               </motion.div>
             )}
           </AnimatePresence>
 
-          <h1 className="text-2xl font-bold mb-2">Type What You Hear</h1>
+          {/* Current Word Display */}
+          <h1 className="text-2xl font-bold mb-2">Current Word</h1>
           {!isPaused ? (
-            <div className="mb-4">
-              <input
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                className="border border-gray-300 p-2 rounded w-full text-center"
-                placeholder="Type the word you heard..."
-              />
-              <Button onClick={handleSubmitAnswer} className="mt-2 w-full">Submit</Button>
-            </div>
+            <p className="text-xl mb-4" aria-live="polite">
+              {words[currentWordIndex]}
+            </p>
           ) : (
-            <div className="mb-4">
+            <div className="mb-4" role="alert" aria-live="assertive">
               <p className="text-red-500 font-semibold">Game Paused</p>
               <h3 className="text-lg font-semibold mt-4">Wrong Words:</h3>
               <ul>
                 {Object.entries(wrongWords).map(([word, count]) => (
-                  <li key={word}>{word}: {count} time(s)</li>
+                  <li key={word}>
+                    {word}: {count} time{count > 1 ? "s" : ""}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
 
+          {/* Action Buttons */}
           <div className="flex gap-4 justify-center">
-            <Button onClick={handleWrongAnswer} disabled={isPaused}>Wrong</Button>
-            <Button onClick={handleNext} disabled={isPaused || currentWordIndex === words.length - 1}>Next</Button>
+            <Button onClick={handleTryAgain} disabled={isPaused}>
+              Try Again
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={isPaused || currentWordIndex === words.length - 1}
+            >
+              Next
+            </Button>
           </div>
 
+          {/* Hint */}
           {hint && <p className="mt-4 text-sm text-blue-600">Hint: {hint}</p>}
 
+          {/* XP and Level Progress */}
           <div className="mt-6">
             <h3 className="text-md font-semibold mb-1">XP Progress</h3>
-            <Progress value={(xp % 100)} className="h-3 bg-gray-200 rounded-full" />
-            <p className="text-xs text-gray-500">{xp} XP - Level {level}</p>
+            <Progress
+              value={xp % 100}
+              className="h-3 bg-gray-200 rounded-full"
+              aria-valuenow={xp % 100}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              role="progressbar"
+            />
+            <p className="text-xs text-gray-500">
+              {xp} XP - Level {level}
+            </p>
           </div>
         </CardContent>
       </Card>
