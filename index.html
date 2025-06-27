@@ -1,201 +1,151 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>SpellMaster 3000</title>
+import React, { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Volume2, Pause, Play, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW0H1N3TDY"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+const words = ["apple", "banana", "cherry", "date", "elderberry"];
 
-    gtag('config', 'G-ZW0H1N3TDY');
-  </script>
+export default function WordGame() {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [wrongWords, setWrongWords] = useState({});
+  const [isPaused, setIsPaused] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [xp, setXp] = useState(0);
+  const [hint, setHint] = useState("");
+  const [level, setLevel] = useState(1);
+  const [showEvolution, setShowEvolution] = useState(false);
+  const synthRef = useRef(window.speechSynthesis);
 
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 20px;
+  const speakWord = (word) => {
+    const utterance = new SpeechSynthesisUtterance(word);
+    synthRef.current.speak(utterance);
+  };
+
+  useEffect(() => {
+    if (!isPaused) speakWord(words[currentWordIndex]);
+  }, [currentWordIndex, isPaused]);
+
+  useEffect(() => {
+    const newLevel = Math.max(1, Math.floor(xp / 100) + 1);
+    if (newLevel !== level) {
+      setLevel(newLevel);
+      setShowEvolution(true);
+      setTimeout(() => setShowEvolution(false), 3000);
     }
-    .hidden { display: none; }
-    .correct { color: green; animation: bounce 0.5s; }
-    .incorrect { color: red; animation: shake 0.3s; }
-    @keyframes bounce {
-      0% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-      100% { transform: translateY(0); }
+  }, [xp]);
+
+  const handleWrongAnswer = () => {
+    const word = words[currentWordIndex];
+    setWrongWords((prev) => ({ ...prev, [word]: (prev[word] || 0) + 1 }));
+    if (xp > 0) setXp((prev) => Math.max(0, prev - 10));
+  };
+
+  const handleNext = () => {
+    if (currentWordIndex < words.length - 1) {
+      setCurrentWordIndex(currentWordIndex + 1);
+      setXp(xp + 10);
+      setHint("");
     }
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
-  </style>
-</head>
-<body>
+  };
 
-  <h1>SpellMaster 3000 🔤</h1>
-  <p><strong>Word:</strong> <span id="currentWord">🎧 Listen and Spell</span></p>
-  <input type="text" id="answerInput" placeholder="Type here..." autofocus />
-  <button onclick="checkAnswer()">Submit</button>
-  <p id="feedback"></p>
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+    if (!isPaused) synthRef.current.cancel();
+  };
 
-  <hr>
+  const getHint = () => {
+    const word = words[currentWordIndex];
+    setHint(`Starts with: ${word.charAt(0)}, Length: ${word.length}`);
+  };
 
-  <p>XP: <span id="xp">0</span> | Level: <span id="level">1</span> | Streak: <span id="streak">0</span></p>
-  <p>Bonus Word: <span id="bonusWordDisplay">Loading...</span></p>
+  return (
+    <div className="p-4 max-w-md mx-auto">
+      <Card className="text-center p-6">
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <Button onClick={togglePause} variant="outline">
+              {isPaused ? <Play /> : <Pause />}
+            </Button>
+            <Button onClick={() => setShowAchievements(!showAchievements)} variant="outline">
+              {showAchievements ? <ChevronUp /> : <ChevronDown />} Leaderboard
+            </Button>
+            <Button onClick={getHint} variant="outline">
+              <HelpCircle /> Hint
+            </Button>
+          </div>
 
-  <hr>
+          <AnimatePresence>
+            {showAchievements && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="mb-4 overflow-hidden bg-gray-100 p-4 rounded-xl shadow"
+              >
+                <h2 className="text-lg font-semibold mb-2">Top Scores</h2>
+                <ul>
+                  <li>Mush - 150 XP</li>
+                  <li>Aya - 120 XP</li>
+                  <li>Liam - 100 XP</li>
+                  <li>Nova - 90 XP</li>
+                  <li>Ezra - 80 XP</li>
+                </ul>
+                <h2 className="text-lg font-semibold mt-4">Level Leaderboard</h2>
+                <ul>
+                  <li>Mush - Level 5</li>
+                  <li>Aya - Level 4</li>
+                  <li>Liam - Level 4</li>
+                  <li>Nova - Level 3</li>
+                  <li>Ezra - Level 3</li>
+                </ul>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-  <button onclick="playWord()">🔊 Hear Word Again</button>
-  <select id="voiceSelect"></select>
+          <AnimatePresence>
+            {showEvolution && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1.1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className="mb-4 p-4 rounded-lg bg-yellow-200 font-bold"
+              >
+                {`Your creature has ${level > Math.floor(xp / 100) + 1 ? "evolved" : "devolved"}! Now at Level ${level}`}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-  <hr>
+          <h1 className="text-2xl font-bold mb-2">Current Word</h1>
+          {!isPaused ? (
+            <p className="text-xl mb-4">{words[currentWordIndex]}</p>
+          ) : (
+            <div className="mb-4">
+              <p className="text-red-500 font-semibold">Game Paused</p>
+              <h3 className="text-lg font-semibold mt-4">Wrong Words:</h3>
+              <ul>
+                {Object.entries(wrongWords).map(([word, count]) => (
+                  <li key={word}>{word}: {count} time(s)</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-  <h3>Achievements 🏅</h3>
-  <ul id="achievements"></ul>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={handleWrongAnswer} disabled={isPaused}>Wrong</Button>
+            <Button onClick={handleNext} disabled={isPaused || currentWordIndex === words.length - 1}>Next</Button>
+          </div>
 
-  <h3>Top 5 Local Scores 🏆</h3>
-  <ol id="leaderboard"></ol>
+          {hint && <p className="mt-4 text-sm text-blue-600">Hint: {hint}</p>}
 
-  <h3>Goblin Says:</h3>
-  <p id="goblin">I’m watching your spelling skills... 👀</p>
-
-  <script>
-    const words = ["apple", "banana", "cherry", "dragon", "elephant", "falcon", "goblin", "helmet", "island", "jungle"];
-    let currentWord = "";
-    let bonusWord = "";
-    let userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    let synth = window.speechSynthesis;
-    let voices = [];
-
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      const selectedVoice = document.getElementById("voiceSelect").value;
-      utterance.voice = voices.find(v => v.name === selectedVoice);
-      synth.speak(utterance);
-    }
-
-    function getRandomWord() {
-      return words[Math.floor(Math.random() * words.length)];
-    }
-
-    function updateStatsDisplay() {
-      document.getElementById("xp").textContent = userData.xp || 0;
-      document.getElementById("level").textContent = userData.level || 1;
-      document.getElementById("streak").textContent = userData.streak || 0;
-    }
-
-    function updateLeaderboard() {
-      const scores = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-      scores.sort((a, b) => b.xp - a.xp);
-      const top5 = scores.slice(0, 5);
-      document.getElementById("leaderboard").innerHTML = top5.map(s => `<li>${s.name || "Player"} - ${s.xp} XP</li>`).join("");
-    }
-
-    function unlockAchievements() {
-      const list = [];
-      if ((userData.totalCorrect || 0) >= 5) list.push("🎯 Flawless 5");
-      if ((userData.totalCorrect || 0) >= 20) list.push("💡 Spelling Guru");
-      if ((userData.streak || 0) >= 10) list.push("🔥 10 Streak Master");
-
-      document.getElementById("achievements").innerHTML = list.map(a => `<li>${a}</li>`).join("");
-    }
-
-    function updateBonusWord() {
-      const today = new Date().toDateString();
-      if (userData.lastBonusDay !== today) {
-        bonusWord = getRandomWord();
-        userData.lastBonusDay = today;
-        userData.bonusWord = bonusWord;
-      } else {
-        bonusWord = userData.bonusWord;
-      }
-      document.getElementById("bonusWordDisplay").textContent = bonusWord;
-    }
-
-    function saveUserData() {
-      localStorage.setItem("userData", JSON.stringify(userData));
-    }
-
-    function playWord() {
-      speak(currentWord);
-    }
-
-    function pickNewWord() {
-      currentWord = getRandomWord();
-      playWord();
-    }
-
-    function updateGoblinFeedback(success) {
-      const phrases = success
-        ? ["Not bad, human.", "Impressive!", "You're smarter than you look."]
-        : ["Wrong again? Tsk tsk...", "Even my goblin cousin could do better!", "I expected more from you!"];
-      document.getElementById("goblin").textContent = phrases[Math.floor(Math.random() * phrases.length)];
-    }
-
-    function checkAnswer() {
-      const input = document.getElementById("answerInput").value.toLowerCase().trim();
-      const feedback = document.getElementById("feedback");
-
-      if (!userData.wordStats) userData.wordStats = {};
-      userData.wordStats[currentWord] = userData.wordStats[currentWord] || { correct: 0, total: 0 };
-      userData.wordStats[currentWord].total++;
-
-      if (input === currentWord) {
-        feedback.textContent = "✅ Correct!";
-        feedback.className = "correct";
-        userData.totalCorrect = (userData.totalCorrect || 0) + 1;
-        userData.streak = (userData.streak || 0) + 1;
-        let points = 5;
-        if (currentWord === bonusWord) points *= 2;
-        userData.xp = (userData.xp || 0) + points;
-        userData.level = Math.floor(userData.xp / 50) + 1;
-        userData.wordStats[currentWord].correct++;
-      } else {
-        feedback.textContent = "❌ Try Again!";
-        feedback.className = "incorrect";
-        userData.streak = 0;
-      }
-
-      updateGoblinFeedback(input === currentWord);
-      updateStatsDisplay();
-      unlockAchievements();
-      saveUserData();
-
-      document.getElementById("answerInput").value = "";
-      setTimeout(pickNewWord, 1000);
-
-      // Save to leaderboard
-      let scores = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-      scores.push({ name: "You", xp: userData.xp || 0 });
-      localStorage.setItem("leaderboard", JSON.stringify(scores));
-      updateLeaderboard();
-    }
-
-    function populateVoiceList() {
-      voices = synth.getVoices();
-      const voiceSelect = document.getElementById("voiceSelect");
-      voiceSelect.innerHTML = voices.map(v => `<option>${v.name}</option>`).join("");
-    }
-
-    // Load everything
-    window.onload = function () {
-      populateVoiceList();
-      synth.onvoiceschanged = populateVoiceList;
-      userData.xp ||= 0;
-      userData.level ||= 1;
-      userData.streak ||= 0;
-      updateBonusWord();
-      updateStatsDisplay();
-      unlockAchievements();
-      updateLeaderboard();
-      pickNewWord();
-    };
-  </script>
-
-</body>
-</html>
+          <div className="mt-6">
+            <h3 className="text-md font-semibold mb-1">XP Progress</h3>
+            <Progress value={(xp % 100)} className="h-3 bg-gray-200 rounded-full" />
+            <p className="text-xs text-gray-500">{xp} XP - Level {level}</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
