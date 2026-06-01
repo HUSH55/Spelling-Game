@@ -6,1534 +6,1013 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a1a">
-<title>Dark Overlord: Monster Empire</title>
+<title>Dark Overlord: Army Conquest</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
-html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;font-family:Georgia,serif;color:#e8d4b0}
-:root{
-  --bg:#0a0a1a;--panel:#0d0d22;--border:#2d1b69;--accent:#7b00ee;
-  --gold:#ffd700;--red:#ff3333;--green:#33cc66;--text:#e8d4b0;--muted:#7a6a90;
-  --nav:60px;--hdr:54px;--safe:env(safe-area-inset-bottom,0px)
-}
-#app{width:100%;height:100%;position:relative;overflow:hidden}
-.screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;background:var(--bg);opacity:0;pointer-events:none;transition:opacity .25s}
-.screen.active{opacity:1;pointer-events:all}
-
-/* AUTH */
-#auth{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a0a3e 0%,#0a0a1a 70%)}
-#auth-bg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
-.auth-box{position:relative;z-index:1;width:90%;max-width:380px;display:flex;flex-direction:column;align-items:center;gap:14px}
-.auth-title{font-size:2.2rem;font-weight:bold;color:var(--gold);text-shadow:0 0 20px #ffd70088,0 0 40px #ffd70044;letter-spacing:3px;animation:glow 2s ease-in-out infinite alternate;text-align:center}
-.auth-sub{color:var(--muted);font-size:.9rem;letter-spacing:6px;text-transform:uppercase;margin-top:-8px}
-@keyframes glow{from{text-shadow:0 0 10px #ffd70066}to{text-shadow:0 0 30px #ffd700cc,0 0 60px #ffd70055}}
-.auth-input{width:100%;padding:13px 16px;background:#0f0f2a;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;outline:none;-webkit-user-select:text;user-select:text}
-.auth-input:focus{border-color:var(--accent);box-shadow:0 0 10px #7b00ee44}
-.btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:1rem;font-family:Georgia,serif;cursor:pointer;transition:all .2s;letter-spacing:1px}
-.btn-primary{background:linear-gradient(135deg,#4a1a8a,#7b00ee);color:#fff;box-shadow:0 0 15px #7b00ee44}
-.btn-primary:active{transform:scale(.97);box-shadow:0 0 25px #7b00ee88}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid #2d1b6966;font-size:.85rem}
-.auth-err{color:var(--red);font-size:.85rem;text-align:center;min-height:18px}
-
-/* TOP BAR */
-#topbar{height:var(--hdr);background:#0d0d22;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:10px;flex-shrink:0;padding-top:env(safe-area-inset-top,0px)}
-.tb-name{font-size:.85rem;color:var(--gold);font-weight:bold;min-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tb-level{background:#1a0a3e;border:1px solid var(--accent);border-radius:12px;padding:2px 8px;font-size:.75rem;color:#cc88ff;white-space:nowrap}
-.tb-hp{flex:1;height:16px;background:#1a0a0a;border-radius:8px;overflow:hidden;position:relative;border:1px solid #3a0a0a}
-.tb-hp-fill{height:100%;background:linear-gradient(90deg,#cc0000,#ff3333);transition:width .3s}
-.tb-hp-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;font-weight:bold}
-.tb-gold{color:var(--gold);font-size:.85rem;white-space:nowrap;display:flex;align-items:center;gap:3px}
-.tb-energy{width:50px;height:8px;background:#0a0a2a;border-radius:4px;overflow:hidden;border:1px solid #2200aa}
-.tb-energy-fill{height:100%;background:linear-gradient(90deg,#4400cc,#8b00ff);transition:width .5s}
-
-/* NAV BAR */
-#navbar{height:calc(var(--nav) + var(--safe));background:#0d0d22;border-top:1px solid var(--border);display:flex;flex-shrink:0;padding-bottom:var(--safe)}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--muted);font-size:.6rem;cursor:pointer;padding:8px 0;transition:color .2s;letter-spacing:.5px}
-.nav-btn.active{color:var(--accent)}
-.nav-icon{font-size:1.3rem;line-height:1}
-
-/* WORLD SCREEN */
-#world{padding-top:0}
-.world-scroll{flex:1;overflow-y:auto;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:20px}
-.world-scroll::-webkit-scrollbar{display:none}
-.zone-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s}
-.zone-card:active{transform:scale(.97)}
-.zone-card.locked{opacity:.45;cursor:default}
-.zone-header{height:70px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.zone-name{position:relative;z-index:1;font-size:.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 4px #000;text-align:center;padding:4px}
-.zone-body{padding:8px 10px;display:flex;flex-direction:column;gap:6px}
-.zone-progress{height:8px;background:#1a0a0a;border-radius:4px;overflow:hidden;border:1px solid #2a0a0a}
-.zone-progress-fill{height:100%;background:linear-gradient(90deg,#aa0000,#ff3333);transition:width .5s}
-.zone-kills{font-size:.65rem;color:var(--muted);display:flex;justify-content:space-between}
-.zone-btns{display:flex;gap:6px}
-.zone-enter{flex:1;padding:7px;background:#2d1b69;border:none;border-radius:6px;color:#fff;font-size:.75rem;cursor:pointer;font-family:Georgia,serif}
-.zone-boss{flex:1;padding:7px;background:#6a0000;border:1px solid #ff3333;border-radius:6px;color:#ff8888;font-size:.75rem;cursor:pointer;font-family:Georgia,serif;animation:bossPulse 2s infinite}
-@keyframes bossPulse{0%,100%{box-shadow:0 0 5px #ff000033}50%{box-shadow:0 0 15px #ff000088}}
-.zone-assigned{font-size:.65rem;color:#8888cc}
-.zone-locked-msg{text-align:center;padding:8px;font-size:.7rem;color:var(--muted)}
-.idle-bar{background:#0d0d22;border-bottom:1px solid var(--border);padding:6px 12px;font-size:.75rem;color:var(--gold);display:flex;justify-content:space-between;flex-shrink:0}
-
-/* BATTLE SCREEN */
-#battle{background:#000}
-#battle-canvas{width:100%;flex:1;display:block}
-.battle-log{background:#0a0a18;border-top:1px solid var(--border);padding:8px 12px;height:76px;overflow-y:auto;flex-shrink:0}
-.battle-log::-webkit-scrollbar{display:none}
-.battle-log p{font-size:.75rem;color:#b0a0c0;line-height:1.5;padding:1px 0}
-.battle-log p.hit{color:#ff9999}
-.battle-log p.player{color:#cc88ff}
-.battle-log p.convert{color:#ff00ff;font-weight:bold}
-.battle-log p.good{color:#88ff88}
-.battle-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;flex-shrink:0;background:#0d0d22;border-top:1px solid var(--border)}
-.battle-btn{padding:14px 8px;border-radius:8px;font-size:.85rem;font-family:Georgia,serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;border:1px solid transparent}
-.battle-btn:active{transform:scale(.95)}
-.btn-attack{background:#1a0a3e;color:#cc88ff;border-color:#4a2a8a}
-.btn-magic{background:#0a1a3a;color:#88aaff;border-color:#2a4a8a}
-.btn-convert{background:#2a0a4a;color:#ff88ff;border-color:#8800cc;opacity:.4}
-.btn-convert.ready{opacity:1;animation:convertGlow 1.5s infinite alternate}
-@keyframes convertGlow{from{box-shadow:0 0 8px #8800cc44}to{box-shadow:0 0 20px #cc00ff}}
-.btn-flee{background:#1a0a0a;color:#ff8888;border-color:#4a1a1a}
-.battle-btn:disabled{opacity:.35;pointer-events:none}
-
-/* ARMY SCREEN */
-#army{overflow:hidden}
-.army-header{background:#0d0d22;border-bottom:1px solid var(--border);padding:10px 12px;flex-shrink:0;display:flex;justify-content:space-between;align-items:center}
-.army-stats-txt{font-size:.75rem;color:var(--muted)}
-.army-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;padding-bottom:20px}
-.army-list::-webkit-scrollbar{display:none}
-.monster-card{background:var(--panel);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
-.monster-card.rarity-uncommon{border-color:#22aa44}
-.monster-card.rarity-rare{border-color:#2244cc}
-.monster-card.rarity-epic{border-color:#8800cc}
-.monster-card.rarity-legendary{border-color:#ff8800}
-.mc-top{display:flex;align-items:center;gap:10px;padding:10px}
-.mc-sprite{width:48px;height:48px;flex-shrink:0;border-radius:6px;background:#0a0a1a;overflow:hidden}
-.mc-info{flex:1;min-width:0}
-.mc-name{font-size:.85rem;color:var(--text);font-weight:bold}
-.mc-type{font-size:.7rem;color:var(--muted)}
-.mc-lvl{font-size:.7rem;color:#cc88ff;background:#1a0a3e;border-radius:10px;padding:1px 6px;display:inline-block}
-.mc-xpbar{height:4px;background:#1a1a2a;border-radius:2px;overflow:hidden;margin-top:4px}
-.mc-xpbar-fill{height:100%;background:#7b00ee;transition:width .5s}
-.mc-bottom{display:flex;gap:6px;padding:0 10px 10px;flex-wrap:wrap}
-.mc-assign-btn{flex:1;padding:6px;background:#1a0a3e;border:1px solid var(--accent);border-radius:6px;color:#cc88ff;font-size:.7rem;cursor:pointer;font-family:Georgia,serif;text-align:center;min-width:80px}
-.mc-equip-btn{padding:6px 10px;background:#1a1a0a;border:1px solid #664400;border-radius:6px;color:#cc9922;font-size:.7rem;cursor:pointer;font-family:Georgia,serif}
-.mc-zone-tag{padding:3px 8px;background:#0a1a0a;border:1px solid #224422;border-radius:12px;color:#44cc66;font-size:.65rem;display:flex;align-items:center}
-.evo-badge{padding:3px 8px;background:#2a0a4a;border:1px solid #8800cc;border-radius:12px;color:#ff88ff;font-size:.65rem;animation:convertGlow 1s infinite alternate;cursor:pointer;display:flex;align-items:center}
-.empty-army{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-size:.9rem;text-align:center;padding:20px}
-
-/* INVENTORY */
-#inventory{overflow:hidden}
-.inv-tabs{display:flex;background:#0d0d22;border-bottom:1px solid var(--border);flex-shrink:0}
-.inv-tab{flex:1;padding:10px 4px;text-align:center;font-size:.72rem;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s}
-.inv-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.inv-grid{flex:1;overflow-y:auto;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-bottom:20px;align-content:start}
-.inv-grid::-webkit-scrollbar{display:none}
-.item-card{background:var(--panel);border-radius:8px;padding:10px;border:1px solid #333355;cursor:pointer;transition:transform .15s}
-.item-card:active{transform:scale(.96)}
-.item-card.uncommon{border-color:#22aa44}
-.item-card.rare{border-color:#2244cc}
-.item-card.epic{border-color:#8800cc}
-.item-card.legendary{border-color:#ff8800}
-.item-icon{font-size:1.6rem;text-align:center;margin-bottom:4px}
-.item-name{font-size:.72rem;font-weight:bold;color:var(--text);text-align:center;margin-bottom:3px}
-.item-stats{font-size:.62rem;color:var(--muted);text-align:center}
-.item-rarity{font-size:.6rem;text-align:center;margin-top:2px}
-.item-rarity.common{color:#888}
-.item-rarity.uncommon{color:#22aa44}
-.item-rarity.rare{color:#4466ff}
-.item-rarity.epic{color:#aa22ff}
-.item-rarity.legendary{color:#ff8800}
-.inv-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted);font-size:.85rem}
-.inv-gold-bar{background:#0d0d22;border-bottom:1px solid var(--border);padding:8px 12px;font-size:.8rem;color:var(--gold);flex-shrink:0}
-
-/* RANKINGS */
-#rankings{overflow:hidden}
-.rank-tabs{display:flex;background:#0d0d22;border-bottom:1px solid var(--border);flex-shrink:0}
-.rank-tab{flex:1;padding:10px;text-align:center;font-size:.75rem;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent}
-.rank-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-.rank-list{flex:1;overflow-y:auto;padding-bottom:20px}
-.rank-list::-webkit-scrollbar{display:none}
-.rank-row{display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid #1a1a2a;gap:10px}
-.rank-row.me{background:#1a0a3e44;border-left:3px solid var(--accent)}
-.rank-num{width:28px;text-align:center;font-size:.85rem;color:var(--muted);flex-shrink:0}
-.rank-num.gold-r{color:#ffd700;font-weight:bold}
-.rank-num.silver-r{color:#cccccc;font-weight:bold}
-.rank-num.bronze-r{color:#cd7f32;font-weight:bold}
-.rank-name{flex:1;font-size:.82rem;color:var(--text)}
-.rank-val{font-size:.78rem;color:var(--accent)}
-.rank-refresh{margin:8px 12px;padding:10px;background:#0d0d22;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:.8rem;cursor:pointer;font-family:Georgia,serif;width:calc(100% - 24px)}
-
-/* MODALS */
-.modal-overlay{position:fixed;inset:0;background:#00000099;z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:#0d0d22;border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:20px;padding-bottom:calc(20px + var(--safe));max-height:70vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s}
-.modal-overlay.open .modal{transform:translateY(0)}
-.modal-title{font-size:1rem;color:var(--gold);text-align:center;margin-bottom:16px;font-weight:bold}
-.evo-options{display:flex;flex-direction:column;gap:10px}
-.evo-opt{background:#1a0a3e;border:1px solid var(--accent);border-radius:10px;padding:14px;cursor:pointer;transition:all .2s}
-.evo-opt:active{transform:scale(.97);background:#2d1b69}
-.evo-opt-name{font-size:.9rem;color:#cc88ff;font-weight:bold;margin-bottom:4px}
-.evo-opt-desc{font-size:.75rem;color:var(--muted)}
-.evo-opt-stats{font-size:.72rem;color:var(--green);margin-top:4px}
-.assign-zones{display:flex;flex-direction:column;gap:8px}
-.assign-zone-row{background:#0a0a1a;border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:.82rem}
-.assign-zone-row:active{background:#1a0a3e}
-.gains-popup{text-align:center}
-.gains-title{color:var(--gold);font-size:1rem;margin-bottom:12px}
-.gains-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;text-align:left}
-.gains-row{display:flex;justify-content:space-between;font-size:.82rem}
-.gains-row span:last-child{color:var(--gold)}
-
-/* TOAST */
-#toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1a0a3e;border:1px solid var(--accent);border-radius:8px;padding:10px 18px;font-size:.82rem;color:#cc88ff;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
-#toast.show{opacity:1}
-
-/* LOADING */
-#loading{align-items:center;justify-content:center;gap:20px;background:radial-gradient(ellipse,#1a0a3e,#0a0a1a)}
-.loading-title{font-size:2rem;color:var(--gold);text-shadow:0 0 20px #ffd70088;letter-spacing:3px}
-.loading-sub{color:var(--muted);font-size:.8rem;letter-spacing:4px}
-.loading-ring{width:50px;height:50px;border:3px solid #2d1b69;border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a}
+#c{display:block;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none}
 </style>
 </head>
 <body>
-<div id="app">
-
-<!-- LOADING -->
-<div id="loading" class="screen active">
-  <div class="loading-title">DARK OVERLORD</div>
-  <div class="loading-sub">MONSTER EMPIRE</div>
-  <div class="loading-ring"></div>
-</div>
-
-<!-- AUTH -->
-<div id="auth" class="screen">
-  <canvas id="auth-bg"></canvas>
-  <div class="auth-box">
-    <div style="margin-bottom:8px;text-align:center">
-      <div class="auth-title">DARK OVERLORD</div>
-      <div class="auth-sub">Monster Empire</div>
-    </div>
-    <input class="auth-input" id="auth-name" placeholder="Overlord Name" style="display:none" autocomplete="off">
-    <input class="auth-input" id="auth-email" type="email" placeholder="Email" autocomplete="email">
-    <input class="auth-input" id="auth-pass" type="password" placeholder="Password" autocomplete="current-password">
-    <div class="auth-err" id="auth-err"></div>
-    <button class="btn btn-primary" id="auth-main-btn">⚡ ENTER THE DARKNESS</button>
-    <button class="btn btn-ghost" id="auth-toggle-btn">No account? <span style="color:var(--accent);text-decoration:underline">Create one</span></button>
-    <div style="color:var(--muted);font-size:.75rem;margin:2px 0">— or —</div>
-    <button class="btn btn-ghost" id="auth-guest-btn">👤 Play as Shadow (Guest)</button>
-  </div>
-</div>
-
-<!-- GAME CONTAINER -->
-<div id="game" class="screen" style="flex-direction:column">
-  <div id="topbar">
-    <div class="tb-name" id="tb-name">Overlord</div>
-    <div class="tb-level" id="tb-level">Lv 1</div>
-    <div class="tb-hp" id="tb-hp">
-      <div class="tb-hp-fill" id="tb-hp-fill" style="width:100%"></div>
-      <div class="tb-hp-txt" id="tb-hp-txt">100/100</div>
-    </div>
-    <div class="tb-energy"><div class="tb-energy-fill" id="tb-energy-fill" style="width:100%"></div></div>
-    <div class="tb-gold">💰<span id="tb-gold">0</span></div>
-  </div>
-
-  <!-- inner screens -->
-  <div id="world" class="screen active" style="position:relative;top:0;height:calc(100% - var(--hdr) - var(--nav))">
-    <div class="idle-bar">
-      <span>👹 Army: <span id="idle-army">0</span></span>
-      <span>💰 <span id="idle-gps">0.0</span>/sec</span>
-    </div>
-    <div class="world-scroll" id="zone-grid"></div>
-  </div>
-
-  <div id="battle" class="screen" style="position:relative;top:0;height:calc(100% - var(--hdr) - var(--nav))">
-    <canvas id="battle-canvas"></canvas>
-    <div class="battle-log" id="battle-log"></div>
-    <div class="battle-actions">
-      <button class="battle-btn btn-attack" id="btn-attack" onclick="playerAction('attack')">⚔️ Attack</button>
-      <button class="battle-btn btn-magic" id="btn-magic" onclick="playerAction('magic')">🔮 Dark Magic</button>
-      <button class="battle-btn btn-convert" id="btn-convert" onclick="playerAction('convert')">💜 Convert</button>
-      <button class="battle-btn btn-flee" id="btn-flee" onclick="playerAction('flee')">🏃 Flee</button>
-    </div>
-  </div>
-
-  <div id="army" class="screen" style="position:relative;top:0;height:calc(100% - var(--hdr) - var(--nav))">
-    <div class="army-header">
-      <div>
-        <div style="font-size:.85rem;color:var(--gold);font-weight:bold">Your Army</div>
-        <div class="army-stats-txt" id="army-stats-txt">0 monsters</div>
-      </div>
-      <div style="font-size:.75rem;color:var(--green)" id="army-gps-display">+0.0 gold/sec</div>
-    </div>
-    <div class="army-list" id="army-list"></div>
-  </div>
-
-  <div id="inventory" class="screen" style="position:relative;top:0;height:calc(100% - var(--hdr) - var(--nav))">
-    <div class="inv-gold-bar">💰 <span id="inv-gold">0</span> &nbsp;|&nbsp; Items: <span id="inv-count">0</span></div>
-    <div class="inv-tabs">
-      <div class="inv-tab active" onclick="setInvFilter('all',this)">All</div>
-      <div class="inv-tab" onclick="setInvFilter('weapon',this)">Weapons</div>
-      <div class="inv-tab" onclick="setInvFilter('armor',this)">Armour</div>
-      <div class="inv-tab" onclick="setInvFilter('accessory',this)">Accessories</div>
-    </div>
-    <div class="inv-grid" id="inv-grid"></div>
-  </div>
-
-  <div id="rankings" class="screen" style="position:relative;top:0;height:calc(100% - var(--hdr) - var(--nav))">
-    <div class="rank-tabs">
-      <div class="rank-tab active" onclick="setRankTab('level',this)">🏆 Level</div>
-      <div class="rank-tab" onclick="setRankTab('army',this)">⚔️ Army</div>
-      <div class="rank-tab" onclick="setRankTab('gold',this)">💰 Gold</div>
-    </div>
-    <button class="rank-refresh" onclick="loadRankings()">↻ Refresh</button>
-    <div class="rank-list" id="rank-list"></div>
-  </div>
-
-  <div id="navbar">
-    <button class="nav-btn active" id="nav-world" onclick="navTo('world',this)"><span class="nav-icon">🗺️</span>World</button>
-    <button class="nav-btn" id="nav-battle" onclick="navTo('battle',this)"><span class="nav-icon">⚔️</span>Battle</button>
-    <button class="nav-btn" id="nav-army" onclick="navTo('army',this)"><span class="nav-icon">👹</span>Army</button>
-    <button class="nav-btn" id="nav-inventory" onclick="navTo('inventory',this)"><span class="nav-icon">🎒</span>Gear</button>
-    <button class="nav-btn" id="nav-rankings" onclick="navTo('rankings',this)"><span class="nav-icon">🏆</span>Rank</button>
-  </div>
-</div>
-
-</div><!-- #app -->
-
-<!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModalOverlay(event)">
-  <div class="modal">
-    <div class="modal-title" id="modal-title"></div>
-    <div id="modal-body"></div>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<canvas id="c"></canvas>
 <script>
 // ══════════════════════════════════════════════════════
-//  FIREBASE SETUP — fill in your own values to enable
-//  online login, rankings, and multiplayer presence.
-//
-//  Steps:
-//  1. Go to https://console.firebase.google.com
-//  2. Create project → Authentication → enable Email/Password + Anonymous
-//  3. Firestore Database → Create (test mode)
-//  4. Realtime Database → Create (test mode)
-//  5. Project Settings → Your Apps → Web → copy config here
+//  FIREBASE (optional — fill in for real leaderboard)
+//  1. console.firebase.google.com → new project
+//  2. Enable Firestore (test mode)
+//  3. Paste your web app config below
 // ══════════════════════════════════════════════════════
-const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+const FB_CFG = {
+  apiKey:"YOUR_API_KEY", authDomain:"YOUR.firebaseapp.com",
+  projectId:"YOUR_ID", storageBucket:"YOUR.appspot.com",
+  messagingSenderId:"YOUR_ID", appId:"YOUR_APP_ID"
 };
-const FB_ON = FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY";
+const FB_ON = FB_CFG.apiKey !== "YOUR_API_KEY";
 
-// ─── PIXEL ART PALETTE ───
-const PAL = {
-  _:null,
-  K:'#0a0a1a', D:'#1a0a3e', P:'#2d1b69', L:'#5a3a9a', V:'#8b00ff',
-  G:'#ffd700', g:'#886600', W:'#ffffff', w:'#dddddd', E:'#888888', N:'#444444', n:'#222222',
-  A:'#33cc44', a:'#1a5522', B:'#4488ff', b:'#1a3388', O:'#ff6600', o:'#882200',
-  Y:'#ffff00', S:'#aaccee', s:'#445566', R:'#ff3333', r:'#ff8888',
-  F:'#ff4400', f:'#991100', T:'#00ccaa', Z:'#cc9966', z:'#664433'
-};
+// ── CONSTANTS ──
+const MAP = 4000;
+const SEG_GAP = 22;       // pixels between segments in path history
+const BASE_SPD = 2.6;
+const BOOST_SPD = 5.0;
+const TURN = 0.11;
+const WILD_COUNT = 90;
+const AI_COUNT = 6;
+const CONVERT_RANGE = 30;
+const CONVERT_DMG = 1.2;   // per frame
+const STEAL_RANGE = 18;
 
-// ─── SPRITES (pixel rows, each char = one pixel) ───
-const SPR = {
-  overlord:[
-    '____GgGg____',
-    '___GGGGGG___',
-    '___DDDDDD___',
-    '__DDDDDDDD__',
-    '__DKKKKKDD__',
-    '__DKRRKKKD__',
-    '__DKKKKKDD__',
-    '_VVVPPPVVV__',
-    'VVVPPPPPPVVV',
-    'VVVPPPPPPVVV',
-    '_VVVPPPVVV__',
-    '__VVVPVVV___',
-    '__VVVPVVV___',
-    '___VVPVV____',
-    '___VVPVV____',
-    '____VPV_____',
-  ],
-  goblin:[
-    '__AAAA____',
-    '_AAAAAA___',
-    'AAAYAYAA__',
-    'AAAAAAAA__',
-    '_AAAAAA___',
-    '__AAAA____',
-    '_AAAAAA___',
-    'AAANNAAA__',
-    '_AA__AA___',
-    'AA____AA__',
-  ],
-  wolf:[
-    '___EEEE___',
-    '__EEEEEE__',
-    '_EENNEEEE_',
-    'EEEEEEEEEE',
-    'EEEEEEEEE_',
-    '_EEEEEEEE_',
-    '_EE_EEEE__',
-    'EE__E_EE__',
-  ],
-  skeleton:[
-    '__WWWW____',
-    '_WWNNWW___',
-    '_WWNWWW___',
-    '__WWWW____',
-    '_WNNNNW___',
-    '_WWWWWW___',
-    '__W__W____',
-    '__W__W____',
-    '_WW__WW___',
-  ],
-  cave_troll:[
-    '__EEEEEE__',
-    '_EEEEEEEE_',
-    'EENNNNEEEE',
-    'EEEEEEEEEE',
-    'EEEEEEEEEE',
-    '_EEEEEEEE_',
-    '_EE_EEEE__',
-    'EEE__EEE__',
-    'EE____EE__',
-  ],
-  ghost:[
-    '___WWWW___',
-    '__WWWWWW__',
-    '_WWWWWWWW_',
-    '_WWNWWNWW_',
-    '_WWWWWWWW_',
-    '__WWWWWW__',
-    '_WWWWWWWW_',
-    '__WW_WWW__',
-    '___W___W__',
-  ],
-  zombie:[
-    '__AAAA____',
-    '_AAAAAA___',
-    '_AANAAAA__',
-    '__AAAA____',
-    '_AAAAAA___',
-    'AAAAAAAA__',
-    '_AA__AA___',
-    'AA___AA___',
-  ],
-  fire_imp:[
-    '___FFf____',
-    '__FFFFF___',
-    '_FFFFFFF__',
-    '_FFYFFFF__',
-    '_FFFFFFFF_',
-    '__FFFFFF__',
-    '__FF_FF___',
-    '_FF___FF__',
-  ],
-  ice_wolf:[
-    '___SSSS___',
-    '__SSSSSS__',
-    '_SSsBBSSS_',
-    'SSSSSSSSSS',
-    'SSSSSSSSS_',
-    '_SSSSSSSS_',
-    '_SS_SSSS__',
-    'SS__S_SS__',
-  ],
-  shadow_wraith:[
-    '___DDDD___',
-    '__DVVVVD__',
-    '_DVVVVVVD_',
-    '_DVVRVVVD_',
-    '_DVVVVVVD_',
-    '__DVVVVD__',
-    '___DVVD___',
-    '___DVVD___',
-    '____DD____',
-  ],
-  bat:[
-    'B__BBBB__B',
-    'BB_BBBB_BB',
-    'BBBBBBBBBB',
-    '_BBNNBBBB_',
-    '__BBBBBB__',
-    '___BBBB___',
-    '___B__B___',
-  ],
-  slime:[
-    '__AAAAAAA_',
-    '_AAAAAAAAA',
-    'AAAYAAAAAA',
-    'AAAAAAAAAA',
-    'AAAAAAAAAA',
-    '_AAAAAAAAA',
-    '__AAAAAAA_',
-  ],
-  boss_lich:[
-    '___VVVVVV__',
-    '__VVGGGGVV_',
-    '_VVVVVVVVV_',
-    '_VVRNVRNVV_',
-    '_VVVVVVVVV_',
-    '__VVVVVVV__',
-    '_VVVVVVVVV_',
-    'VVVPPPPPVVV',
-    'VVVPPPPPVVV',
-    '_VVPPPPPVV_',
-    '__VVVVVVV__',
-    '__VV_VVV___',
-    '_VV__VV____',
-    'VV___VV____',
-  ],
-  boss_treant:[
-    '___ZZZZ____',
-    '__ZAAAZZ___',
-    '_ZAAAAAAZ__',
-    'ZAANNAAAAAZ',
-    'ZAAAAAAAAZ_',
-    '_ZAAAAAZ___',
-    '_ZAAAAAZ___',
-    'ZZAAAAAZZ__',
-    'ZZAAAAAZZ__',
-    '_ZZAAAZZ___',
-    '__ZZ_ZZ____',
-    '_ZZ___ZZ___',
-  ],
-  boss_golem:[
-    '__NNNNNN___',
-    '_NNNNNNNN__',
-    'NNEENNNNNN_',
-    'NNNNNNNNNN_',
-    'NNNNNNNNNN_',
-    '_NNNNNNNN__',
-    '_NNNNNNNN__',
-    'NN_NNNNNN__',
-    'NN__NN_NN__',
-    'N____N__N__',
-  ],
-  // Evolution sprites
-  goblin_hunter: [
-    '__aaaa____',
-    '_aAAAAa___',
-    'AAAYAYAA__',
-    'AAAAAAAA__',
-    '_aAAAAa___',
-    '__aAAa____',
-    '_aAAAAa___',
-    'AaAANNAaA_',
-    '_Aa__Aa___',
-    'Aa____Aa__',
-  ],
-  dire_wolf:[
-    '__NNNNNN__',
-    '_NNNNNNNN_',
-    'NNEEEENNNn',
-    'NNNNNNNNNN',
-    'NNNNNNNNN_',
-    '_NNNNNNNN_',
-    '_NNN_NNN__',
-    'NN___N_NN_',
-  ],
-  dark_knight:[
-    '__NNNNNN__',
-    '_NNNPPNNN_',
-    'NNPPPPPNNN',
-    'NNPPRPPNN_',
-    'NNPPPPPNN_',
-    '_NNNPPNNN_',
-    '_NNPPPPNN_',
-    'NNNPPPPNNN',
-    '__NN__NN__',
-    'NN____NN__',
-  ],
-  banshee:[
-    '___WWWW___',
-    '__WVVVVW__',
-    '_WVWWWVVW_',
-    '_WVWRWVVW_',
-    '_WVWWWVVW_',
-    '__WVVVVW__',
-    '___WVVW___',
-    '____WW____',
-    '___WWWW___',
-  ],
+// ── PALETTE ──
+const C = {
+  bg:'#070710', grid:'#0d0d1e', border:'#1a0a3e',
+  overlord:'#8b00ff', crown:'#ffd700', eye:'#ff3333',
+  goblin:'#33cc44', wolf:'#888888', bat:'#6644bb', skeleton:'#cccccc',
+  cave_troll:'#997755', ghost:'#99bbdd', zombie:'#55aa44',
+  fire_imp:'#ff6600', ice_wolf:'#88aaff', shadow_wraith:'#aa00ff',
+  slime:'#44cc00', dark_knight:'#4433cc', banshee:'#ffaaff',
+  dire_wolf:'#555555', vampire_bat:'#aa0033',
+  hpGood:'#33cc66', hpLow:'#ff3333', gold:'#ffd700',
+  ui:'rgba(13,13,34,0.85)', uiBorder:'#2d1b69'
 };
 
-function drawSprite(ctx, key, x, y, scale, flipX) {
-  const rows = SPR[key] || SPR.goblin;
-  ctx.save();
-  if (flipX) { ctx.scale(-1,1); x = -x - rows[0].length * scale; }
-  rows.forEach((row, ri) => {
-    for (let ci = 0; ci < row.length; ci++) {
-      const col = PAL[row[ci]];
-      if (!col) continue;
-      ctx.fillStyle = col;
-      ctx.fillRect(x + ci*scale, y + ri*scale, scale, scale);
-    }
-  });
-  ctx.restore();
-}
+// Monster type → color and display char
+const MTYPE = {
+  goblin:{col:C.goblin,ch:'G',size:11},
+  wolf:{col:C.wolf,ch:'W',size:12},
+  bat:{col:C.bat,ch:'B',size:10},
+  skeleton:{col:C.skeleton,ch:'S',size:11},
+  cave_troll:{col:C.cave_troll,ch:'T',size:14},
+  ghost:{col:C.ghost,ch:'☽',size:12},
+  zombie:{col:C.zombie,ch:'Z',size:11},
+  fire_imp:{col:C.fire_imp,ch:'F',size:11},
+  ice_wolf:{col:C.ice_wolf,ch:'❄',size:12},
+  shadow_wraith:{col:C.shadow_wraith,ch:'V',size:12},
+  slime:{col:C.slime,ch:'●',size:13},
+  dark_knight:{col:C.dark_knight,ch:'K',size:13},
+  banshee:{col:C.banshee,ch:'☠',size:11},
+  dire_wolf:{col:'#555',ch:'W',size:14},
+  vampire_bat:{col:C.vampire_bat,ch:'♥',size:11},
+};
 
-function spriteSize(key) {
-  const rows = SPR[key] || SPR.goblin;
-  return { w: rows[0].length, h: rows.length };
-}
-
-// ─── GAME DATA ───
-const ZONES = [
-  {id:'forest',name:'Forest of Shadows',biome:'forest',bg1:'#071207',bg2:'#0d2a0d',col:'#1a3a1a',
-   monsters:['goblin','wolf','bat','goblin','wolf'],boss:{name:'Ancient Treant',type:'boss_treant'},
-   unlocksAfter:null,xpPK:20,goldPK:3,level:1},
-  {id:'cave',name:'Sunken Caves',biome:'cave',bg1:'#07070f',bg2:'#101028',col:'#1e1e3a',
-   monsters:['bat','skeleton','cave_troll','bat','skeleton'],boss:{name:'Stone Golem',type:'boss_golem'},
-   unlocksAfter:'forest',xpPK:40,goldPK:6,level:5},
-  {id:'ruins',name:'Cursed Ruins',biome:'ruins',bg1:'#0f071a',bg2:'#180a22',col:'#2a1436',
-   monsters:['ghost','zombie','ghost','zombie','shadow_wraith'],boss:{name:'The Lich',type:'boss_lich'},
-   unlocksAfter:'cave',xpPK:70,goldPK:10,level:10},
-  {id:'swamp',name:'Fetid Swamp',biome:'swamp',bg1:'#071207',bg2:'#091a09',col:'#142814',
-   monsters:['slime','bat','slime','zombie','slime'],boss:{name:'Bog Hydra',type:'boss_lich'},
-   unlocksAfter:'ruins',xpPK:110,goldPK:15,level:18},
-  {id:'volcano',name:'Volcano Caldera',biome:'volcano',bg1:'#180500',bg2:'#220700',col:'#3c1400',
-   monsters:['fire_imp','fire_imp','slime','fire_imp','cave_troll'],boss:{name:'Volcano Titan',type:'boss_golem'},
-   unlocksAfter:'swamp',xpPK:160,goldPK:22,level:28},
-  {id:'frozen',name:'Frozen Wastes',biome:'frozen',bg1:'#07071a',bg2:'#070f22',col:'#0a1e3c',
-   monsters:['ice_wolf','ice_wolf','skeleton','ice_wolf','bat'],boss:{name:'Frozen Ancient',type:'boss_lich'},
-   unlocksAfter:'volcano',xpPK:220,goldPK:30,level:40},
-  {id:'sky',name:'Sky Citadel',biome:'sky',bg1:'#070f1a',bg2:'#0d1f6a',col:'#1432b4',
-   monsters:['bat','shadow_wraith','bat','ice_wolf','ghost'],boss:{name:'Storm Dragon',type:'boss_treant'},
-   unlocksAfter:'frozen',xpPK:300,goldPK:42,level:55},
-  {id:'shadow',name:'Shadow Realm',biome:'shadow',bg1:'#070010',bg2:'#0f0030',col:'#200050',
-   monsters:['shadow_wraith','ghost','shadow_wraith','zombie','shadow_wraith'],boss:{name:'Shadow Overlord',type:'boss_lich'},
-   unlocksAfter:'sky',xpPK:400,goldPK:60,level:75},
+// Wild monster roster per zone
+const ZONES=[
+  {cx:2000,cy:2000,r:800,col:'#0a1a0a',name:'Forest',types:['goblin','wolf','bat']},
+  {cx:3000,cy:1200,r:700,col:'#0a0a14',name:'Caves',types:['bat','skeleton','cave_troll']},
+  {cx:3000,cy:2800,r:700,col:'#140a14',name:'Ruins',types:['ghost','zombie','shadow_wraith']},
+  {cx:1000,cy:2800,r:700,col:'#0a140a',name:'Swamp',types:['slime','zombie','ghost']},
+  {cx:1000,cy:1200,r:700,col:'#180500',name:'Volcano',types:['fire_imp','cave_troll','skeleton']},
+  {cx:500,cy:2000,r:500,col:'#07071a',name:'Frozen',types:['ice_wolf','skeleton','bat']},
+  {cx:3500,cy:2000,r:500,col:'#07001a',name:'Shadow',types:['shadow_wraith','banshee','ghost']},
 ];
 
-const MONSTER_NAMES = {
-  goblin:['Griznak','Skitter','Bogtooth','Muck','Ratfang','Slashclaw'],
-  wolf:['Fang','Shadowpaw','Duskrunner','Greyback','Moonfang','Nighthowl'],
-  bat:['Shriek','Darkveil','Flitterwing','Gloom','Dusk','Nightwing'],
-  skeleton:['Rattlebone','Grim','Dustmarch','Hollowcrown','Ashen','Bonecrack'],
-  cave_troll:['Krunch','Smasher','Boulder','Grog','Thud','Grimrock'],
-  ghost:['Wailmere','Specter','Coldwind','Fadewhisper','Mournveil','Hauntcry'],
-  zombie:['Shuffler','Rotmoor','Plague','Moanwalker','Grimflesh','Carrion'],
-  fire_imp:['Cinder','Scorch','Blaze','Ember','Flicker','Sizzle'],
-  ice_wolf:['Frostpaw','Glacier','Blizzard','Coldsnap','Icefang','Winterhowl'],
-  shadow_wraith:['Voidwhisper','Darkweave','Umbrasite','Null','Shaderift','Nocturn'],
-  slime:['Glob','Splorch','Ooze','Bubbles','Murk','Splat'],
+const AI_NAMES=['VoidLord','NecroKing','ShadowMage','GrimReaper','DarkBane','CurseWarden'];
+const AI_COLS=['#ff6600','#ff00aa','#00ccff','#ffcc00','#ff4444','#44ffaa'];
+
+// ── STATE ──
+let canvas, ctx, W, H;
+let gamePhase = 'start'; // start | play | dead | scores
+let frame = 0;
+let score = 0, highScore = 0;
+
+// Player
+const player = {
+  x:MAP/2, y:MAP/2, angle:0, speed:BASE_SPD,
+  hp:100, maxHp:100, boosting:false, boostEnergy:100, maxBoost:100,
+  history:[], // {x,y} trail
+  army:[], // [{type,level,col,size,x,y}]
+  name:'Dark Overlord', level:1, xp:0,
 };
 
-const EVOLUTIONS = {
-  goblin_10:[
-    {type:'goblin_hunter',name:'Goblin Hunter',desc:'Swift & lethal. Excels at loot runs.',atkB:15,defB:3,spdB:8},
-    {type:'goblin_shaman',name:'Goblin Shaman',desc:'Dark magic user. Weakens enemies.',atkB:8,defB:5,spdB:3},
-    {type:'goblin_warlord',name:'Goblin Warlord',desc:'Commands others. Boosts army.',atkB:10,defB:10,spdB:2},
-  ],
-  wolf_10:[
-    {type:'dire_wolf',name:'Dire Wolf',desc:'Massive predator. Devastating.',atkB:20,defB:5,spdB:5},
-    {type:'spirit_wolf',name:'Spirit Wolf',desc:'Ethereal. Hard to hit.',atkB:10,defB:15,spdB:15},
-  ],
-  skeleton_10:[
-    {type:'dark_knight',name:'Dark Knight',desc:'Heavily armored. Near-indestructible.',atkB:12,defB:20,spdB:0},
-    {type:'bone_archer',name:'Bone Archer',desc:'Deadly ranged attacks.',atkB:22,defB:5,spdB:8},
-  ],
-  ghost_10:[
-    {type:'banshee',name:'Banshee',desc:'Soul-piercing scream. Ignores armor.',atkB:25,defB:0,spdB:10},
-    {type:'poltergeist',name:'Poltergeist',desc:'Chaos incarnate.',atkB:15,defB:10,spdB:5},
-  ],
-  bat_10:[
-    {type:'vampire_bat',name:'Vampire Bat',desc:'Drains life force.',atkB:18,defB:5,spdB:12},
-    {type:'shadow_bat',name:'Shadow Bat',desc:'Cloaked in darkness.',atkB:12,defB:8,spdB:20},
-  ],
-};
+// Controls
+let touchX = MAP/2+10, touchY = MAP/2;
+let touchActive = false;
+let boostTouch = false;
+let lastTap = 0;
 
-const ITEM_PRE=['Shadow','Dark','Cursed','Ancient','Void','Spectral','Abyssal','Infernal','Frozen','Arcane'];
-const ITEM_WEP=['Blade','Staff','Fang','Claw','Edge','Shard','Spike','Talon'];
-const ITEM_ARM=['Shroud','Plate','Cloak','Shell','Ward','Carapace','Hide'];
-const ITEM_ACC=['Ring','Pendant','Sigil','Charm','Rune','Totem'];
-const RARITIES=['common','uncommon','rare','epic','legendary'];
-const RARITY_W=[50,28,14,6,2];
-const RARITY_M={common:1,uncommon:1.6,rare:2.8,epic:5,legendary:9};
-const RARITY_SELL={common:1,uncommon:2,rare:5,epic:12,legendary:30};
+// Wild monsters
+let wilds = [];
+// AI players
+let ais = [];
+// Particles
+let parts = [];
+// Floating texts
+let floats = [];
+// Leaderboard data
+let leaderboard = [];
 
-function rollRarity() {
-  let r=Math.random()*100, c=0;
-  for(let i=0;i<RARITIES.length;i++){c+=RARITY_W[i];if(r<c)return RARITIES[i];}
-  return 'common';
+// ── INIT ──
+function init() {
+  canvas = document.getElementById('c');
+  ctx = canvas.getContext('2d');
+  resize();
+  window.addEventListener('resize', resize);
+  canvas.addEventListener('touchstart', onTouchStart, {passive:false});
+  canvas.addEventListener('touchmove', onTouchMove, {passive:false});
+  canvas.addEventListener('touchend', onTouchEnd, {passive:false});
+  canvas.addEventListener('mousedown', onMouseDown);
+  canvas.addEventListener('mousemove', onMouseMove);
+  canvas.addEventListener('mouseup', onMouseUp);
+  highScore = parseInt(localStorage.getItem('dko_hs')||'0');
+  if (FB_ON) initFirebase();
+  requestAnimationFrame(loop);
 }
 
-function generateItem(zoneLevel, forceType) {
-  const type=forceType||(['weapon','armor','accessory'][Math.floor(Math.random()*3)]);
-  const rarity=rollRarity();
-  const mult=RARITY_M[rarity];
-  const base=3+zoneLevel*2;
-  const suf=type==='weapon'?ITEM_WEP:type==='armor'?ITEM_ARM:ITEM_ACC;
-  const name=ITEM_PRE[Math.floor(Math.random()*ITEM_PRE.length)]+' '+suf[Math.floor(Math.random()*suf.length)];
-  const icon=type==='weapon'?'⚔️':type==='armor'?'🛡️':'💍';
-  const stats={};
-  if(type==='weapon'){stats.atk=Math.floor(base*mult*(0.8+Math.random()*0.4));}
-  if(type==='armor'){stats.def=Math.floor(base*0.7*mult);stats.hp=Math.floor(base*1.5*mult);}
-  if(type==='accessory'){const s=['atk','def','spd','luck'][Math.floor(Math.random()*4)];stats[s]=Math.floor(base*0.5*mult*(0.8+Math.random()*0.4));}
-  return{id:'item_'+Date.now()+'_'+Math.random().toString(36).slice(2),name,icon,type,rarity,stats,zoneLevel};
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = canvas.clientWidth; H = canvas.clientHeight;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.scale(dpr, dpr);
 }
 
-// ─── STATE ───
-const DEFAULT_STATE=()=>({
-  ver:2,created:Date.now(),lastSave:Date.now(),
-  player:{
-    name:'Dark Overlord',level:1,xp:0,
-    hp:120,maxHp:120,energy:50,maxEnergy:50,
-    gold:80,gems:5,
-    stats:{atk:22,def:8,spd:10,luck:5,charisma:25},
-    equipment:{weapon:null,armor:null,accessory:null},
-    currentZone:'forest',totalKills:0,totalConverts:0
-  },
-  zones:{
-    forest:{kills:0,bossKilled:false,unlocked:true},
-    cave:{kills:0,bossKilled:false,unlocked:false},
-    ruins:{kills:0,bossKilled:false,unlocked:false},
-    swamp:{kills:0,bossKilled:false,unlocked:false},
-    volcano:{kills:0,bossKilled:false,unlocked:false},
-    frozen:{kills:0,bossKilled:false,unlocked:false},
-    sky:{kills:0,bossKilled:false,unlocked:false},
-    shadow:{kills:0,bossKilled:false,unlocked:false},
-  },
-  army:[],inventory:[]
-});
+// ── TOUCH / MOUSE INPUT ──
+function getCanvasPos(clientX, clientY) {
+  const r = canvas.getBoundingClientRect();
+  return { x: clientX - r.left, y: clientY - r.top };
+}
 
-let gs=DEFAULT_STATE();
-let currentUser=null;
-let fireDb=null,fireRtdb=null;
-let currentScreen='world';
-let battleState=null;
-let battleAnimId=null;
-let battleFrame=0;
-let particles=[];
-let onlinePlayers={};
-let rankTab='level';
-let invFilter='all';
-let lastTick=Date.now();
-let idleInterval=null;
-let saveTimer=null;
+function onTouchStart(e) {
+  e.preventDefault();
+  const t = e.touches[0];
+  const pos = getCanvasPos(t.clientX, t.clientY);
+  if (gamePhase === 'start' || gamePhase === 'dead' || gamePhase === 'scores') {
+    handleUITap(pos.x, pos.y); return;
+  }
+  touchActive = true;
+  updateTarget(pos.x, pos.y);
+  // Right side tap = boost
+  if (pos.x > W * 0.65) boostTouch = true;
+  // Double-tap anywhere = boost
+  const now = Date.now();
+  if (now - lastTap < 300) boostTouch = true;
+  lastTap = now;
+}
+function onTouchMove(e) {
+  e.preventDefault();
+  if (gamePhase !== 'play') return;
+  // Use first non-right touch for steering
+  for (let i = 0; i < e.touches.length; i++) {
+    const t = e.touches[i];
+    const pos = getCanvasPos(t.clientX, t.clientY);
+    if (pos.x <= W * 0.85) { updateTarget(pos.x, pos.y); break; }
+  }
+}
+function onTouchEnd(e) {
+  e.preventDefault();
+  if (e.touches.length === 0) { touchActive = false; boostTouch = false; }
+}
+function onMouseDown(e) {
+  const pos = getCanvasPos(e.clientX, e.clientY);
+  if (gamePhase === 'start' || gamePhase === 'dead' || gamePhase === 'scores') { handleUITap(pos.x, pos.y); return; }
+  touchActive = true; updateTarget(pos.x, pos.y);
+  if (e.clientX > W*0.65) boostTouch = true;
+}
+function onMouseMove(e) { if (touchActive && gamePhase==='play') { const pos=getCanvasPos(e.clientX,e.clientY); updateTarget(pos.x,pos.y); } }
+function onMouseUp() { touchActive = false; boostTouch = false; }
 
-// ─── SAVE / LOAD ───
-function saveGame(){
-  gs.lastSave=Date.now();
-  try{localStorage.setItem('darkOverlord_v2',JSON.stringify(gs));}catch(e){}
-  if(FB_ON&&currentUser&&fireDb){
-    clearTimeout(saveTimer);
-    saveTimer=setTimeout(async()=>{
-      try{
-        await fireDb.collection('saves').doc(currentUser.uid).set(gs);
-        await fireDb.collection('players').doc(currentUser.uid).set({
-          name:gs.player.name,level:gs.player.level,
-          armySize:gs.army.length,gold:Math.floor(gs.player.gold),
-          uid:currentUser.uid,updated:Date.now()
-        });
-      }catch(e){}
-    },3000);
+function updateTarget(screenX, screenY) {
+  // Convert screen coords to world coords
+  touchX = screenX + player.x - W/2;
+  touchY = screenY + player.y - H/2;
+}
+
+function handleUITap(x, y) {
+  if (gamePhase === 'start') { startGame(); return; }
+  if (gamePhase === 'dead') {
+    // Check "Play Again" button (drawn at center)
+    if (y > H/2 && y < H/2+60) { startGame(); return; }
+    if (y > H/2+70 && y < H/2+130) { gamePhase='scores'; loadLeaderboard(); return; }
+  }
+  if (gamePhase === 'scores') { gamePhase='dead'; return; }
+}
+
+// ── GAME START / RESET ──
+function startGame() {
+  score = 0; frame = 0;
+  player.x = MAP/2 + (Math.random()-0.5)*200;
+  player.y = MAP/2 + (Math.random()-0.5)*200;
+  player.angle = Math.random()*Math.PI*2;
+  player.hp = player.maxHp = 100;
+  player.speed = BASE_SPD;
+  player.boosting = false; player.boostEnergy = 100;
+  player.history = []; player.army = [];
+  player.level = 1; player.xp = 0;
+  touchX = player.x + Math.cos(player.angle)*100;
+  touchY = player.y + Math.sin(player.angle)*100;
+  touchActive = false; boostTouch = false;
+  parts = []; floats = [];
+  spawnWilds();
+  spawnAIs();
+  gamePhase = 'play';
+}
+
+// ── SPAWNING ──
+function spawnWilds() {
+  wilds = [];
+  for (let i = 0; i < WILD_COUNT; i++) spawnOneWild();
+}
+
+function spawnOneWild() {
+  // Pick a zone weighted by probability
+  const zone = ZONES[Math.floor(Math.random()*ZONES.length)];
+  const a = Math.random()*Math.PI*2, r = Math.random()*zone.r;
+  const type = zone.types[Math.floor(Math.random()*zone.types.length)];
+  const level = 1 + Math.floor(Math.random()*8);
+  const mt = MTYPE[type];
+  wilds.push({
+    x: Math.max(100,Math.min(MAP-100, zone.cx + Math.cos(a)*r)),
+    y: Math.max(100,Math.min(MAP-100, zone.cy + Math.sin(a)*r)),
+    type, level, col: mt.col, size: mt.size + Math.floor(level/4),
+    hp: 30 + level*15, maxHp: 30 + level*15,
+    angle: Math.random()*Math.PI*2, speed: 0.3+Math.random()*0.4,
+    state: 'idle', stateTimer: 0, alive: true, respawn: 0,
+    xpVal: 8 + level*4, zone
+  });
+}
+
+function spawnAIs() {
+  ais = [];
+  for (let i = 0; i < AI_COUNT; i++) {
+    const x = 400 + Math.random()*(MAP-800), y = 400+Math.random()*(MAP-800);
+    const ai = {
+      name: AI_NAMES[i], col: AI_COLS[i],
+      x, y, angle: Math.random()*Math.PI*2, speed: BASE_SPD*0.75,
+      hp:100, maxHp:100, alive:true,
+      history:[], army:[],
+      score: Math.floor(Math.random()*200),
+      targetX:x+100, targetY:y, aiTimer:0,
+    };
+    // Start AI with a small army
+    const startTypes = ['goblin','wolf','bat','skeleton'];
+    for (let j = 0; j < 3+Math.floor(Math.random()*4); j++) {
+      const t = startTypes[Math.floor(Math.random()*startTypes.length)];
+      ai.army.push({type:t,level:1+Math.floor(Math.random()*5),col:MTYPE[t].col,size:MTYPE[t].size,x:ai.x,y:ai.y});
+    }
+    ais.push(ai);
   }
 }
 
-async function loadGame(){
-  if(FB_ON&&currentUser&&fireDb){
-    try{
-      const doc=await fireDb.collection('saves').doc(currentUser.uid).get();
-      if(doc.exists){gs=doc.data();return;}
-    }catch(e){}
+// ── GAME LOGIC ──
+function update() {
+  frame++;
+
+  // Player movement
+  if (touchActive) {
+    const dx = touchX - player.x, dy = touchY - player.y;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    if (dist > 8) {
+      const target = Math.atan2(dy, dx);
+      let diff = target - player.angle;
+      while (diff > Math.PI) diff -= Math.PI*2;
+      while (diff < -Math.PI) diff += Math.PI*2;
+      player.angle += diff * TURN;
+    }
   }
-  const s=localStorage.getItem('darkOverlord_v2');
-  if(s){try{gs=JSON.parse(s);}catch(e){gs=DEFAULT_STATE();}}
-}
 
-// ─── FORMULAS ───
-function xpToLevel(lv){return Math.floor(100*Math.pow(1.18,lv-1));}
-function calcDmg(atk,def){return Math.max(1,Math.floor(atk*(100/(100+def))*(0.85+Math.random()*0.3)));}
-function monsterRarity(lv){return lv>=50?'legendary':lv>=30?'epic':lv>=20?'rare':lv>=10?'uncommon':'common';}
-function equipBonus(stat){
-  return Object.values(gs.player.equipment).reduce((s,it)=>s+(it&&it.stats&&it.stats[stat]?it.stats[stat]:0),0);
-}
-
-// ─── ENEMY FACTORY ───
-function createEnemy(zoneId,isBoss){
-  const zone=ZONES.find(z=>z.id===zoneId);
-  const lv=isBoss?zone.level+5:zone.level+Math.floor(Math.random()*5);
-  if(isBoss){
-    const b=zone.boss;
-    const hp=Math.floor((80+lv*30)*5);
-    return{name:b.name,type:b.type,level:lv,hp,maxHp:hp,
-      atk:Math.floor((8+lv*5)*2.2),def:Math.floor((3+lv*2)*2),isBoss:true};
+  // Boost
+  player.boosting = boostTouch && player.boostEnergy > 0;
+  if (player.boosting) {
+    player.speed = BASE_SPD + (BOOST_SPD-BASE_SPD) * (player.boostEnergy/player.maxBoost);
+    player.boostEnergy = Math.max(0, player.boostEnergy - 1.2);
+    if (player.boostEnergy <= 0) boostTouch = false;
+    // Boost costs army length over time
+    if (frame % 90 === 0 && player.army.length > 0) player.army.pop();
+  } else {
+    player.speed = BASE_SPD;
+    player.boostEnergy = Math.min(player.maxBoost, player.boostEnergy + 0.4);
   }
-  const type=zone.monsters[Math.floor(Math.random()*zone.monsters.length)];
-  const hp=Math.floor(30+lv*20+Math.random()*15);
-  const atk=Math.floor(8+lv*4+Math.random()*4);
-  const def=Math.floor(3+lv*2);
-  const names=MONSTER_NAMES[type]||['Creature'];
-  const name=names[Math.floor(Math.random()*names.length)];
-  return{name:`${name}`,type,level:lv,hp,maxHp:hp,atk,def,isBoss:false};
+
+  // Move player
+  player.x = Math.max(30, Math.min(MAP-30, player.x + Math.cos(player.angle)*player.speed));
+  player.y = Math.max(30, Math.min(MAP-30, player.y + Math.sin(player.angle)*player.speed));
+
+  // Update position history
+  player.history.unshift({x:player.x, y:player.y});
+  const maxHist = (player.army.length+2)*SEG_GAP + 60;
+  if (player.history.length > maxHist) player.history.length = maxHist;
+
+  // Position army segments
+  player.army.forEach((seg,i) => {
+    const idx = Math.min((i+1)*SEG_GAP, player.history.length-1);
+    seg.x = player.history[idx].x;
+    seg.y = player.history[idx].y;
+  });
+
+  // Score over time
+  if (frame % 60 === 0) score += 1 + Math.floor(player.army.length*0.5);
+
+  // XP / level
+  while (player.xp >= player.level * 80) {
+    player.xp -= player.level * 80;
+    player.level++;
+    player.maxHp = 100 + player.level*10;
+    player.hp = Math.min(player.hp+30, player.maxHp);
+    spawnBurst(player.x, player.y, C.gold, 20);
+    addFloat('+LEVEL UP!', player.x, player.y-40, C.gold, 1.4);
+  }
+
+  // HP regen
+  player.hp = Math.min(player.maxHp, player.hp + 0.02);
+
+  // Wild monster AI
+  updateWilds();
+
+  // Collision: player vs wilds
+  checkPlayerVsWilds();
+
+  // Collision: player vs AI segments (steal/get stolen)
+  checkPlayerVsAI();
+
+  // AI update
+  updateAIs();
+
+  // Particles
+  parts = parts.filter(p=>p.life>0);
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.08;p.life--;p.size*=0.97;});
+
+  // Floating texts
+  floats = floats.filter(f=>f.life>0);
+  floats.forEach(f=>{f.y-=0.8;f.life--;});
+
+  // Respawn wilds
+  if (frame % 180 === 0) {
+    while (wilds.filter(w=>w.alive).length < WILD_COUNT * 0.8) spawnOneWild();
+  }
 }
 
-function createArmyMonster(enemy){
-  const names=MONSTER_NAMES[enemy.type]||['Unknown'];
-  const n=names[Math.floor(Math.random()*names.length)];
-  return{
-    id:'arm_'+Date.now()+'_'+Math.random().toString(36).slice(2),
-    name:n,type:enemy.type,level:enemy.level,xp:0,
-    hp:enemy.maxHp,maxHp:enemy.maxHp,
-    stats:{atk:enemy.atk,def:enemy.def,spd:8+Math.floor(Math.random()*6),luck:Math.floor(Math.random()*5)},
-    equipment:{weapon:null,armor:null,accessory:null},
-    assignment:null,evolvedFrom:[enemy.type],pendingEvo:false,
-    rarity:monsterRarity(enemy.level)
-  };
+function updateWilds() {
+  wilds.forEach(w => {
+    if (!w.alive) return;
+    w.stateTimer--;
+
+    // Check proximity to player
+    const dx = player.x - w.x, dy = player.y - w.y;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+
+    if (dist < 180) {
+      w.state = 'flee';
+      w.angle = Math.atan2(-dy, -dx) + (Math.random()-.5)*0.5;
+    } else if (w.stateTimer <= 0) {
+      w.state = 'idle';
+      w.angle += (Math.random()-.5)*0.4;
+      w.stateTimer = 60 + Math.floor(Math.random()*120);
+    }
+
+    const spd = w.state==='flee' ? w.speed*1.8 : w.speed;
+    w.x = Math.max(50,Math.min(MAP-50, w.x + Math.cos(w.angle)*spd));
+    w.y = Math.max(50,Math.min(MAP-50, w.y + Math.sin(w.angle)*spd));
+  });
 }
 
-// ─── IDLE ───
-function calcGPS(m){
-  if(!m.assignment)return 0;
-  const zone=ZONES.find(z=>z.id===m.assignment);
-  if(!zone)return 0;
-  return zone.goldPK*0.2*(1+m.level*0.05);
-}
-function totalGPS(){return gs.army.reduce((s,m)=>s+calcGPS(m),0);}
-
-function tickIdle(){
-  const now=Date.now();
-  const dt=Math.min((now-lastTick)/1000,30);
-  lastTick=now;
-  if(dt<=0)return;
-  let dirty=false;
-  gs.army.forEach(m=>{
-    if(!m.assignment)return;
-    const zone=ZONES.find(z=>z.id===m.assignment);
-    if(!zone)return;
-    gs.player.gold+=calcGPS(m)*dt;
-    m.xp+=(zone.xpPK*0.3*(1+m.level*0.03))*dt;
-    if(m.xp>=xpToLevel(m.level)){
-      m.xp-=xpToLevel(m.level);m.level++;
-      m.maxHp=Math.floor(m.maxHp*1.08);m.hp=m.maxHp;
-      m.stats.atk=Math.floor(m.stats.atk*1.06);
-      m.stats.def=Math.floor(m.stats.def*1.06);
-      toast(`${m.name} is now Level ${m.level}!`);
-      checkEvo(m);dirty=true;
+function checkPlayerVsWilds() {
+  wilds.forEach(w => {
+    if (!w.alive) return;
+    const dx = player.x - w.x, dy = player.y - w.y;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    if (dist < CONVERT_RANGE + w.size) {
+      w.hp -= CONVERT_DMG;
+      spawnBurst(w.x, w.y, w.col, 2);
+      if (w.hp <= 0) {
+        convertWild(w);
+      }
     }
   });
-  gs.player.energy=Math.min(gs.player.maxEnergy,gs.player.energy+dt*1.5);
-  gs.player.gold=Math.floor(gs.player.gold*10)/10;
-  if(dirty)saveGame();
-  updateTopBar();
-  updateIdleBar();
-  if(currentScreen==='army')renderArmyList();
 }
 
-function calcOfflineGains(){
-  const elapsed=Math.min((Date.now()-gs.lastSave)/1000,28800);
-  if(elapsed<60)return null;
-  let gold=0;const details=[];
-  gs.army.forEach(m=>{
-    if(!m.assignment)return;
-    const zone=ZONES.find(z=>z.id===m.assignment);
-    if(!zone)return;
-    const g=calcGPS(m)*elapsed;gold+=g;
-    if(g>0.5)details.push({name:m.name,gold:Math.floor(g)});
+function convertWild(w) {
+  w.alive = false;
+  const mt = MTYPE[w.type];
+  player.army.push({
+    type:w.type, level:w.level, col:w.col, size:w.size, x:player.x, y:player.y
   });
-  if(gold<1)return null;
-  gs.player.gold+=gold;
-  return{gold:Math.floor(gold),time:Math.floor(elapsed/60),details};
+  score += 10 + w.level*5;
+  player.xp += w.xpVal;
+  spawnBurst(w.x, w.y, '#ff00ff', 22);
+  addFloat('+'+w.type.replace('_',' '), w.x, w.y-20, w.col, 1.1);
+  addFloat('+'+(10+w.level*5), w.x, w.y-38, C.gold, 1.0);
 }
 
-function checkEvo(m){
-  const thr=Math.floor(m.level/10)*10;
-  if(thr<10)return;
-  const key=`${m.evolvedFrom[0]}_${thr}`;
-  if(EVOLUTIONS[key]&&!m[`evo${thr}`]){m.pendingEvo=thr;renderArmyList();}
+function checkPlayerVsAI() {
+  ais.forEach(ai => {
+    if (!ai.alive) return;
+
+    // Player head vs AI segments (steal AI's tail from hit point)
+    for (let i = ai.army.length-1; i >= 0; i--) {
+      const seg = ai.army[i];
+      const dx = player.x - seg.x, dy = player.y - seg.y;
+      if (Math.sqrt(dx*dx+dy*dy) < STEAL_RANGE + seg.size) {
+        // Steal from i onward
+        const stolen = ai.army.splice(i);
+        stolen.forEach(s => {
+          player.army.push({...s, x:player.x, y:player.y});
+          score += 15;
+          player.xp += 12;
+        });
+        spawnBurst(seg.x, seg.y, '#ffff00', 18);
+        addFloat('STOLEN +'+stolen.length, seg.x, seg.y-30, C.gold, 1.3);
+        return;
+      }
+    }
+
+    // AI head vs player segments
+    for (let i = player.army.length-1; i >= 0; i--) {
+      const seg = player.army[i];
+      const dx = ai.x - seg.x, dy = ai.y - seg.y;
+      if (Math.sqrt(dx*dx+dy*dy) < STEAL_RANGE + seg.size) {
+        const lost = player.army.splice(i);
+        lost.forEach(s => ai.army.push({...s, x:ai.x, y:ai.y}));
+        player.hp -= 8 + lost.length*2;
+        spawnBurst(seg.x, seg.y, C.eye, 15);
+        addFloat('-'+lost.length+' monsters!', player.x, player.y-50, C.eye, 1.2);
+        if (player.hp <= 0 && player.army.length === 0) die();
+        return;
+      }
+    }
+
+    // AI head vs player head = both take damage
+    const dhx = player.x-ai.x, dhy = player.y-ai.y;
+    if (Math.sqrt(dhx*dhx+dhy*dhy) < 24) {
+      player.hp -= 15;
+      ai.hp -= 20;
+      spawnBurst(player.x, player.y, '#ffffff', 20);
+      if (ai.hp <= 0) killAI(ai);
+      if (player.hp <= 0 && player.army.length === 0) die();
+    }
+  });
 }
 
-// ─── BATTLE ───
-function startBattle(zoneId,isBoss){
-  const zone=ZONES.find(z=>z.id===zoneId);
-  gs.player.currentZone=zoneId;
-  battleState={
-    zone,isBoss,enemy:createEnemy(zoneId,isBoss),
-    animating:false,over:false,
-    enemyHitFlash:0,playerHitFlash:0,shake:0
-  };
-  particles=[];
-  document.getElementById('battle-log').innerHTML='';
-  addLog(`A ${battleState.enemy.name} appears!`,'good');
-  navTo('battle',document.getElementById('nav-battle'));
-  updateBattleUI();
-  if(battleAnimId)cancelAnimationFrame(battleAnimId);
-  battleFrame=0;
-  battleLoop();
+function killAI(ai) {
+  ai.alive = false;
+  // Drop their army as wild monsters
+  ai.army.forEach(seg => {
+    const mt = MTYPE[seg.type]||MTYPE.goblin;
+    wilds.push({
+      x:seg.x,y:seg.y,type:seg.type,level:seg.level,col:seg.col,size:seg.size,
+      hp:20,maxHp:20,angle:Math.random()*Math.PI*2,speed:0.5,
+      state:'idle',stateTimer:0,alive:true,respawn:0,xpVal:15,zone:ZONES[0]
+    });
+  });
+  ai.army = [];
+  score += 50;
+  addFloat('DEFEATED '+ai.name+'!', player.x, player.y-60, C.gold, 1.5);
+  spawnBurst(ai.x, ai.y, ai.col, 40);
+  // Respawn AI after delay
+  setTimeout(()=>{
+    ai.x=400+Math.random()*(MAP-800); ai.y=400+Math.random()*(MAP-800);
+    ai.hp=ai.maxHp=100; ai.alive=true; ai.army=[];
+    for(let j=0;j<3;j++){const t=['goblin','wolf','bat'][j];ai.army.push({type:t,level:1,col:MTYPE[t].col,size:MTYPE[t].size,x:ai.x,y:ai.y});}
+  }, 15000);
 }
 
-function battleLoop(){
-  const canvas=document.getElementById('battle-canvas');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  const dpr=window.devicePixelRatio||1;
-  const w=canvas.clientWidth,h=canvas.clientHeight;
-  if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){
-    canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
-    ctx.scale(dpr,dpr);
+function updateAIs() {
+  ais.forEach(ai => {
+    if (!ai.alive) return;
+    ai.aiTimer--;
+
+    // Find nearest wild monster as target
+    if (ai.aiTimer <= 0) {
+      ai.aiTimer = 60 + Math.floor(Math.random()*90);
+      let best = null, bestDist = Infinity;
+      wilds.forEach(w => {
+        if (!w.alive) return;
+        const d = Math.hypot(w.x-ai.x, w.y-ai.y);
+        if (d < bestDist) { bestDist=d; best=w; }
+      });
+      if (best && Math.random() < 0.7) {
+        ai.targetX = best.x + (Math.random()-.5)*80;
+        ai.targetY = best.y + (Math.random()-.5)*80;
+      } else {
+        ai.targetX = 300+Math.random()*(MAP-600);
+        ai.targetY = 300+Math.random()*(MAP-600);
+      }
+    }
+
+    const dx=ai.targetX-ai.x, dy=ai.targetY-ai.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>10){
+      const ta=Math.atan2(dy,dx);
+      let diff=ta-ai.angle;
+      while(diff>Math.PI)diff-=Math.PI*2;
+      while(diff<-Math.PI)diff+=Math.PI*2;
+      ai.angle+=diff*TURN*0.7;
+    }
+    ai.x=Math.max(30,Math.min(MAP-30,ai.x+Math.cos(ai.angle)*ai.speed));
+    ai.y=Math.max(30,Math.min(MAP-30,ai.y+Math.sin(ai.angle)*ai.speed));
+
+    ai.history.unshift({x:ai.x,y:ai.y});
+    const mh=(ai.army.length+2)*SEG_GAP+60;
+    if(ai.history.length>mh)ai.history.length=mh;
+    ai.army.forEach((seg,i)=>{
+      const idx=Math.min((i+1)*SEG_GAP,ai.history.length-1);
+      seg.x=ai.history[idx].x; seg.y=ai.history[idx].y;
+    });
+
+    // AI converts wilds it touches
+    wilds.forEach(w=>{
+      if(!w.alive)return;
+      const d=Math.hypot(w.x-ai.x,w.y-ai.y);
+      if(d<CONVERT_RANGE+w.size){
+        w.hp-=CONVERT_DMG*0.5;
+        if(w.hp<=0){w.alive=false;ai.army.push({type:w.type,level:w.level,col:w.col,size:w.size,x:ai.x,y:ai.y});ai.score+=8;}
+      }
+    });
+  });
+}
+
+function die() {
+  gamePhase = 'dead';
+  if (score > highScore) { highScore = score; localStorage.setItem('dko_hs', highScore); }
+  spawnBurst(player.x, player.y, '#8800ff', 60);
+  saveScore();
+}
+
+// ── PARTICLES / FLOATS ──
+function spawnBurst(x, y, col, n) {
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, sp=1+Math.random()*4;
+    parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,life:20+Math.random()*20,col,size:2+Math.random()*4});
   }
-  ctx.clearRect(0,0,w,h);
-  if(battleState)renderBattleScene(ctx,w,h);
-  renderParticles(ctx);
-  battleFrame++;
-  battleAnimId=requestAnimationFrame(battleLoop);
+}
+function addFloat(txt,x,y,col,scale=1){
+  floats.push({txt,x,y,col,scale,life:70});
 }
 
-function renderBattleScene(ctx,w,h){
-  const bs=battleState;
-  // Background
-  const grad=ctx.createLinearGradient(0,0,0,h);
-  grad.addColorStop(0,bs.zone.bg1);grad.addColorStop(1,bs.zone.bg2);
-  ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
-  drawBiomeEnv(ctx,w,h,bs.zone.biome);
+// ── RENDERING ──
+function draw() {
+  ctx.clearRect(0,0,W,H);
 
-  // Shake
-  let sx=0,sy=0;
-  if(bs.shake>0){sx=(Math.random()-.5)*bs.shake*3;sy=(Math.random()-.5)*bs.shake*1.5;bs.shake=Math.max(0,bs.shake-.5);ctx.translate(sx,sy);}
+  if (gamePhase==='start') { drawStart(); return; }
+  if (gamePhase==='scores') { drawScores(); return; }
 
-  // Player
-  const pKey='overlord';
-  const pSz=spriteSize(pKey);
-  const pSc=Math.max(2,Math.floor(Math.min(w*0.16/pSz.w,(h*0.38)/pSz.h)));
-  const pW=pSz.w*pSc,pH=pSz.h*pSc;
-  const pX=Math.floor(w*0.17),pY=Math.floor(h*0.55)+Math.round(Math.sin(battleFrame*0.03)*3);
-  if(bs.playerHitFlash>0){ctx.globalAlpha=0.4+0.6*(1-bs.playerHitFlash);bs.playerHitFlash=Math.max(0,bs.playerHitFlash-.1);}
-  drawSprite(ctx,pKey,pX-Math.floor(pW/2),pY-pH,pSc,false);
-  ctx.globalAlpha=1;
+  // Camera: center on player
+  const camX = player.x - W/2;
+  const camY = player.y - H/2;
 
-  // Enemy
-  const eKey=bs.enemy.type in SPR?bs.enemy.type:'goblin';
-  const eSz=spriteSize(eKey);
-  const eSc=bs.isBoss?Math.max(2,Math.floor(Math.min(w*0.26/eSz.w,(h*0.5)/eSz.h))):Math.max(2,Math.floor(Math.min(w*0.18/eSz.w,(h*0.4)/eSz.h)));
-  const eW=eSz.w*eSc,eH=eSz.h*eSc;
-  const eX=Math.floor(w*0.76),eY=Math.floor(h*0.55)+Math.round(Math.sin(battleFrame*0.025+1)*3);
-  if(bs.enemyHitFlash>0){ctx.globalAlpha=0.35+0.65*(1-bs.enemyHitFlash);bs.enemyHitFlash=Math.max(0,bs.enemyHitFlash-.1);}
-  drawSprite(ctx,eKey,eX-Math.floor(eW/2),eY-eH,eSc,true);
-  ctx.globalAlpha=1;
+  ctx.save();
+  ctx.translate(-camX, -camY);
 
-  if(bs.shake>0)ctx.translate(-sx,-sy);
+  drawMapBG(camX, camY);
+  drawWilds();
+  drawAIs();
+  drawPlayer();
+  drawParticles();
+  drawFloats();
 
-  // HP bars
-  drawHPBar(ctx,pX,pY-pH-16,88,gs.player.hp,gs.player.maxHp,'You','#33cc66');
-  drawHPBar(ctx,eX,eY-eH-16,88,bs.enemy.hp,bs.enemy.maxHp,bs.enemy.name.split(' ')[0].substring(0,8),'#ff4444');
-  // Energy bar
-  const ex=pX-44,ey=pY-pH-7;
-  ctx.fillStyle='#0a0a2a';ctx.fillRect(ex,ey,88,5);
-  ctx.fillStyle='#6600cc';ctx.fillRect(ex,ey,88*(gs.player.energy/gs.player.maxEnergy),5);
+  ctx.restore();
+
+  drawHUD();
+
+  if (gamePhase==='dead') drawDead();
 }
 
-function drawBiomeEnv(ctx,w,h,biome){
-  ctx.save();ctx.globalAlpha=0.25;
-  if(biome==='forest'){
-    ctx.fillStyle='#1a4a1a';
-    for(let i=0;i<6;i++){const tx=i*w/5;ctx.beginPath();ctx.moveTo(tx,h*0.85);ctx.lineTo(tx-18,h);ctx.lineTo(tx+18,h);ctx.fill();ctx.beginPath();ctx.moveTo(tx,h*0.7);ctx.lineTo(tx-14,h*0.88);ctx.lineTo(tx+14,h*0.88);ctx.fill();}
-  }else if(biome==='cave'){
-    ctx.fillStyle='#334';
-    for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(i*w/7,0);ctx.lineTo(i*w/7+12,h*0.12);ctx.lineTo(i*w/7+24,0);ctx.fill();}
-    ctx.fillStyle='#223';
-    for(let i=0;i<7;i++){ctx.beginPath();ctx.moveTo(i*w/6,h);ctx.lineTo(i*w/6+16,h*0.82);ctx.lineTo(i*w/6+32,h);ctx.fill();}
-  }else if(biome==='volcano'){
-    ctx.globalAlpha=0.18;ctx.fillStyle='#ff4400';ctx.fillRect(0,h*0.82,w,h*0.18);
-    ctx.globalAlpha=0.22;ctx.fillStyle='#ff8800';
-    for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(i*w/4+20,h*0.86+Math.sin(battleFrame*.05+i)*4,14+i*4,0,Math.PI*2);ctx.fill();}
-  }else if(biome==='frozen'){
-    ctx.fillStyle='#aaccff';ctx.globalAlpha=0.1;
-    for(let i=0;i<25;i++){ctx.fillRect((i*67+battleFrame*.3)%w,(i*43)%h,2,8);}
-  }else if(biome==='shadow'){
-    ctx.fillStyle='#8800ff';ctx.globalAlpha=0.07;
-    for(let i=0;i<9;i++){ctx.beginPath();ctx.arc(i*w/8+10,h*.5+Math.sin(battleFrame*.02+i)*25,25+i*4,0,Math.PI*2);ctx.fill();}
-  }else if(biome==='sky'){
-    ctx.fillStyle='#ffffff';ctx.globalAlpha=0.1;
-    for(let i=0;i<4;i++){ctx.beginPath();ctx.ellipse(i*w/3+50,(i%2)*h*.3+30,60+i*20,20,0,0,Math.PI*2);ctx.fill();}
-  }
+function drawMapBG(camX, camY) {
+  // Base
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(camX, camY, W, H);
+
+  // Grid
+  ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+  const gs=80;
+  const sx=Math.floor(camX/gs)*gs, sy=Math.floor(camY/gs)*gs;
+  for(let x=sx;x<camX+W+gs;x+=gs){ctx.beginPath();ctx.moveTo(x,camY);ctx.lineTo(x,camY+H);ctx.stroke();}
+  for(let y=sy;y<camY+H+gs;y+=gs){ctx.beginPath();ctx.moveTo(camX,y);ctx.lineTo(camX+W,y);ctx.stroke();}
+
+  // Biome regions
+  ZONES.forEach(z=>{
+    const grd=ctx.createRadialGradient(z.cx,z.cy,0,z.cx,z.cy,z.r);
+    grd.addColorStop(0,z.col+'88');grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.arc(z.cx,z.cy,z.r,0,Math.PI*2);ctx.fill();
+  });
+
+  // Map border glow
+  ctx.strokeStyle='#2d1b69'; ctx.lineWidth=30;
+  ctx.shadowColor='#8b00ff'; ctx.shadowBlur=40;
+  ctx.strokeRect(15,15,MAP-30,MAP-30);
+  ctx.shadowBlur=0;
+}
+
+function drawWilds() {
+  wilds.forEach(w=>{
+    if(!w.alive)return;
+    ctx.save();ctx.translate(w.x,w.y);
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.beginPath();ctx.ellipse(2,w.size*0.6,w.size*0.7,w.size*0.25,0,0,Math.PI*2);ctx.fill();
+    // Body glow
+    ctx.shadowColor=w.col; ctx.shadowBlur=8;
+    ctx.fillStyle=w.col;
+    ctx.beginPath();ctx.arc(0,0,w.size,0,Math.PI*2);ctx.fill();
+    // Inner highlight
+    ctx.fillStyle='rgba(255,255,255,0.2)';
+    ctx.beginPath();ctx.arc(-w.size*0.25,-w.size*0.25,w.size*0.4,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // HP bar
+    if(w.hp<w.maxHp){
+      ctx.fillStyle='#1a0a0a';ctx.fillRect(-w.size,-w.size-9,w.size*2,5);
+      ctx.fillStyle=w.hp/w.maxHp>0.5?C.hpGood:C.hpLow;
+      ctx.fillRect(-w.size,-w.size-9,(w.hp/w.maxHp)*w.size*2,5);
+    }
+    // Level label
+    ctx.fillStyle='#fff'; ctx.font=`bold ${Math.max(8,w.size-2)}px Arial`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(w.level,0,0);
+    ctx.restore();
+  });
+}
+
+function drawAIs() {
+  ais.forEach(ai=>{
+    if(!ai.alive)return;
+    // Draw army chain
+    ai.army.forEach((seg,i)=>{drawSegment(seg.x,seg.y,seg.col,seg.size*(0.92),i,ai.army.length);});
+    // Draw AI head
+    drawHead(ai.x,ai.y,ai.angle,ai.col,18,ai.name,ai.army.length);
+  });
+}
+
+function drawPlayer() {
+  // Draw army chain first (behind head)
+  player.army.forEach((seg,i)=>{
+    drawSegment(seg.x,seg.y,seg.col,seg.size,i,player.army.length);
+  });
+  // Draw overlord head
+  drawOverlord(player.x,player.y,player.angle,player.level);
+}
+
+function drawSegment(x,y,col,size,idx,total) {
+  ctx.save();ctx.translate(x,y);
+  const fade = 0.7 + 0.3*(1-idx/Math.max(1,total));
+  ctx.globalAlpha=fade;
+  ctx.shadowColor=col;ctx.shadowBlur=5;
+  ctx.fillStyle=col;
+  ctx.beginPath();ctx.arc(0,0,Math.max(6,size),0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
   ctx.globalAlpha=1;ctx.restore();
 }
 
-function drawHPBar(ctx,cx,y,width,hp,maxHp,label,color){
-  const x=cx-width/2;
-  ctx.fillStyle='#0a0a0a';ctx.fillRect(x,y,width,8);
-  ctx.fillStyle=color;ctx.fillRect(x,y,Math.max(0,width*(hp/maxHp)),8);
-  ctx.strokeStyle='#33333366';ctx.lineWidth=1;ctx.strokeRect(x,y,width,8);
-  ctx.fillStyle='#ddd';ctx.font='bold 8px Arial';ctx.textAlign='center';
-  ctx.fillText(label,cx,y-3);
+function drawOverlord(x,y,angle,level) {
+  ctx.save();ctx.translate(x,y);
+  const r = 16 + Math.min(level*0.5, 12);
+
+  // Outer glow ring
+  ctx.shadowColor='#8b00ff';ctx.shadowBlur=20+Math.sin(frame*0.05)*5;
+  ctx.strokeStyle='#4400aa';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,r+5,0,Math.PI*2);ctx.stroke();
+  ctx.shadowBlur=0;
+
+  // Rotate to face direction
+  ctx.rotate(angle + Math.PI/2);
+
+  // Cloak
+  ctx.fillStyle='#1a0a3e';
+  ctx.shadowColor='#8b00ff';ctx.shadowBlur=12;
+  ctx.beginPath();ctx.ellipse(0,2,r*0.85,r*1.1,0,0,Math.PI*2);ctx.fill();
+
+  // Hood
+  ctx.fillStyle='#0a0718';
+  ctx.beginPath();ctx.arc(0,-r*0.15,r*0.62,0,Math.PI*2);ctx.fill();
+
+  // Crown (3 spikes)
+  ctx.fillStyle=C.crown;ctx.shadowColor=C.crown;ctx.shadowBlur=8;
+  [-1,0,1].forEach(i=>{
+    const cx=i*r*0.28, cy=-r*0.62;
+    const h=i===0?r*0.38:r*0.26;
+    ctx.beginPath();ctx.moveTo(cx-4,cy);ctx.lineTo(cx,cy-h);ctx.lineTo(cx+4,cy);ctx.closePath();ctx.fill();
+  });
+
+  // Eyes
+  ctx.fillStyle=C.eye;ctx.shadowColor='#ff0000';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.ellipse(-r*0.2,-r*0.18,r*0.1,r*0.08,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(r*0.2,-r*0.18,r*0.1,r*0.08,0,0,Math.PI*2);ctx.fill();
+
+  ctx.shadowBlur=0;ctx.restore();
 }
 
-function renderParticles(ctx){
-  particles=particles.filter(p=>p.life>0);
-  particles.forEach(p=>{
-    p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.life--;
-    ctx.globalAlpha=p.life/p.maxLife;ctx.fillStyle=p.color;
+function drawHead(x,y,angle,col,r,name,armyLen) {
+  ctx.save();ctx.translate(x,y);
+  ctx.shadowColor=col;ctx.shadowBlur=15;
+  ctx.rotate(angle+Math.PI/2);
+  ctx.fillStyle=col;
+  ctx.beginPath();ctx.ellipse(0,0,r*0.8,r,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.5)';
+  ctx.beginPath();ctx.ellipse(-r*0.2,-r*0.25,r*0.15,r*0.12,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(r*0.2,-r*0.25,r*0.15,r*0.12,0,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;ctx.rotate(-(angle+Math.PI/2));
+  // Name tag
+  ctx.fillStyle='rgba(13,13,34,0.8)';
+  const tw=ctx.measureText(name).width+10;
+  ctx.fillRect(-tw/2,-r-20,tw,14);
+  ctx.fillStyle='#e8d4b0';ctx.font='10px Arial';ctx.textAlign='center';
+  ctx.fillText(name,0,-r-9);
+  ctx.restore();
+}
+
+function drawParticles() {
+  parts.forEach(p=>{
+    ctx.globalAlpha=p.life/40;ctx.fillStyle=p.col;
     ctx.fillRect(p.x,p.y,p.size,p.size);
   });
   ctx.globalAlpha=1;
 }
 
-function spawnFX(x,y,color,count){
-  for(let i=0;i<count;i++){
-    const a=Math.random()*Math.PI*2,sp=1+Math.random()*4;
-    particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:25+Math.random()*20,maxLife:45,color,size:2+Math.random()*4});
+function drawFloats() {
+  floats.forEach(f=>{
+    ctx.globalAlpha=Math.min(1,f.life/20);
+    ctx.fillStyle=f.col;
+    ctx.font=`bold ${Math.floor(13*f.scale)}px Arial`;
+    ctx.textAlign='center';
+    ctx.fillText(f.txt,f.x,f.y);
+  });
+  ctx.globalAlpha=1;
+}
+
+// ── HUD ──
+function drawHUD() {
+  const pad=12, top=Math.max(pad, parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-top'))||pad);
+
+  // Score + army count (top center)
+  ctx.fillStyle=C.ui; roundRect(ctx,W/2-100,top,200,50,8); ctx.fill();
+  ctx.strokeStyle=C.uiBorder;ctx.lineWidth=1;roundRect(ctx,W/2-100,top,200,50,8);ctx.stroke();
+  ctx.fillStyle=C.gold;ctx.font='bold 18px Georgia';ctx.textAlign='center';
+  ctx.fillText('⚔ '+score,W/2,top+18);
+  ctx.fillStyle='#cc88ff';ctx.font='12px Arial';
+  ctx.fillText('👹 '+player.army.length+' soldiers  Lv '+player.level,W/2,top+38);
+
+  // Player HP bar (top left)
+  const bx=pad, by=top, bw=110, bh=14;
+  ctx.fillStyle=C.ui; ctx.fillRect(bx,by,bw+2,bh*2+24);
+  ctx.strokeStyle=C.uiBorder;ctx.lineWidth=1;ctx.strokeRect(bx,by,bw+2,bh*2+24);
+  ctx.fillStyle='#0a0a0a';ctx.fillRect(bx+4,by+6,bw,bh);
+  ctx.fillStyle=player.hp/player.maxHp>0.4?C.hpGood:C.hpLow;
+  ctx.fillRect(bx+4,by+6,bw*(player.hp/player.maxHp),bh);
+  ctx.fillStyle='#ccc';ctx.font='9px Arial';ctx.textAlign='left';
+  ctx.fillText('HP '+Math.ceil(player.hp)+'/'+player.maxHp,bx+6,by+5+bh);
+
+  // Boost bar
+  ctx.fillStyle='#0a0a2a';ctx.fillRect(bx+4,by+bh+10,bw,bh-2);
+  ctx.fillStyle=player.boostEnergy>30?'#6600cc':'#cc0000';
+  ctx.fillRect(bx+4,by+bh+10,bw*(player.boostEnergy/player.maxBoost),bh-2);
+  ctx.fillStyle='#aaa';ctx.font='9px Arial';
+  ctx.fillText('BOOST',bx+6,by+bh*2+12);
+
+  // Leaderboard (top right)
+  drawMiniLeaderboard();
+
+  // Minimap (bottom right)
+  drawMinimap();
+
+  // Controls hint (bottom center, only first 8 seconds)
+  if (frame < 480) {
+    ctx.globalAlpha=Math.min(1,(480-frame)/60);
+    ctx.fillStyle='rgba(13,13,34,0.8)';
+    roundRect(ctx,W/2-130,H-80,260,36,8);ctx.fill();
+    ctx.fillStyle='#b0a0c0';ctx.font='13px Arial';ctx.textAlign='center';
+    ctx.fillText('👆 Touch to steer  ✌ Right side / double-tap = BOOST',W/2,H-56);
+    ctx.globalAlpha=1;
   }
 }
 
-function addLog(msg,cls=''){
-  const log=document.getElementById('battle-log');
-  const p=document.createElement('p');
-  if(cls)p.className=cls;p.textContent=msg;
-  log.appendChild(p);log.scrollTop=log.scrollHeight;
-  while(log.children.length>12)log.removeChild(log.firstChild);
+function drawMiniLeaderboard() {
+  const entries = buildLeaderboard();
+  const x=W-140, y=12, w=130, rowH=18;
+  ctx.fillStyle=C.ui;
+  roundRect(ctx,x,y,w,8+entries.length*rowH,8);ctx.fill();
+  ctx.strokeStyle=C.uiBorder;ctx.lineWidth=1;
+  roundRect(ctx,x,y,w,8+entries.length*rowH,8);ctx.stroke();
+  entries.forEach((e,i)=>{
+    const ty=y+4+(i+1)*rowH-2;
+    ctx.fillStyle=e.isMe?C.gold:'#b0a0c0';
+    ctx.font=(e.isMe?'bold ':'')+'10px Arial';
+    ctx.textAlign='left';
+    ctx.fillText(`${i+1}. ${e.name.substring(0,10)}`,x+6,ty);
+    ctx.textAlign='right';
+    ctx.fillText(e.score,x+w-4,ty);
+  });
 }
 
-function updateBattleUI(){
-  if(!battleState)return;
-  const bs=battleState;
-  const canConvert=!bs.over&&!bs.animating&&!bs.isBoss&&(bs.enemy.hp/bs.enemy.maxHp)<0.3;
-  document.getElementById('btn-convert').classList.toggle('ready',canConvert);
-  const over=bs.over||bs.animating;
-  document.getElementById('btn-attack').disabled=over;
-  document.getElementById('btn-flee').disabled=over;
-  document.getElementById('btn-convert').disabled=over||!canConvert||bs.isBoss;
-  document.getElementById('btn-magic').disabled=over||gs.player.energy<15;
-  updateTopBar();
+function buildLeaderboard() {
+  const all=[
+    {name:player.name,score,isMe:true,army:player.army.length},
+    ...ais.filter(a=>a.alive).map(a=>({name:a.name,score:a.score+(a.army.length*8),isMe:false,army:a.army.length}))
+  ];
+  return all.sort((a,b)=>b.score-a.score).slice(0,6);
 }
 
-function playerAction(action){
-  if(!battleState||battleState.over||battleState.animating)return;
-  const bs=battleState;
-  const c=document.getElementById('battle-canvas');
-  const ex=c.clientWidth*.76,ey=c.clientHeight*.45;
-  const px=c.clientWidth*.17,py=c.clientHeight*.45;
-  bs.animating=true;
+function drawMinimap() {
+  const mmW=90,mmH=90,mmX=W-mmW-10,mmY=H-mmH-10;
+  const scale=mmW/MAP;
+  ctx.fillStyle='rgba(7,7,16,0.85)';
+  ctx.fillRect(mmX,mmY,mmW,mmH);
+  ctx.strokeStyle=C.uiBorder;ctx.lineWidth=1;ctx.strokeRect(mmX,mmY,mmW,mmH);
 
-  if(action==='attack'){
-    const dmg=calcDmg(gs.player.stats.atk+equipBonus('atk'),bs.enemy.def);
-    bs.enemy.hp=Math.max(0,bs.enemy.hp-dmg);
-    bs.enemyHitFlash=1;bs.shake=2;
-    spawnFX(ex,ey,'#ff4444',8);
-    addLog(`You strike for ${dmg} damage!`,'player');
-  }else if(action==='magic'){
-    if(gs.player.energy<15){bs.animating=false;return;}
-    gs.player.energy-=15;
-    const dmg=Math.floor(calcDmg(gs.player.stats.atk+equipBonus('atk'),bs.enemy.def)*1.85);
-    bs.enemy.hp=Math.max(0,bs.enemy.hp-dmg);
-    bs.enemyHitFlash=1;
-    spawnFX(ex,ey,'#8800ff',16);
-    addLog(`Dark Magic surges! ${dmg} damage!`,'player');
-  }else if(action==='convert'){
-    const pct=bs.enemy.hp/bs.enemy.maxHp;
-    const chance=Math.min(0.9,(gs.player.stats.charisma/80)*(1-pct)*2.5);
-    if(Math.random()<chance){
-      spawnFX(ex,ey,'#ff00ff',28);
-      addLog(`${bs.enemy.name} surrenders to your will!`,'convert');
-      bs.animating=false;
-      setTimeout(()=>endBattle(true),900);return;
-    }else{
-      spawnFX(ex,ey,'#ff88ff',6);
-      addLog(`${bs.enemy.name} resists conversion!`,'hit');
-    }
-  }else if(action==='flee'){
-    if(Math.random()<0.55){
-      addLog('You flee into the shadows!','good');bs.animating=false;bs.over=true;
-      setTimeout(()=>navTo('world',document.getElementById('nav-world')),500);return;
-    }else{addLog('Failed to flee!','hit');}
+  // Zones blobs
+  ZONES.forEach(z=>{
+    ctx.fillStyle=z.col+'66';
+    ctx.beginPath();ctx.arc(mmX+z.cx*scale,mmY+z.cy*scale,z.r*scale*0.7,0,Math.PI*2);ctx.fill();
+  });
+
+  // Wild monsters (tiny dots)
+  ctx.fillStyle='#556655';
+  wilds.filter(w=>w.alive).forEach(w=>{
+    ctx.fillRect(mmX+w.x*scale-1,mmY+w.y*scale-1,2,2);
+  });
+
+  // AI players
+  ais.forEach(ai=>{
+    if(!ai.alive)return;
+    ctx.fillStyle=ai.col;
+    ctx.beginPath();ctx.arc(mmX+ai.x*scale,mmY+ai.y*scale,3,0,Math.PI*2);ctx.fill();
+  });
+
+  // Player (bright dot)
+  ctx.fillStyle='#ffffff';
+  ctx.shadowColor='#ffffff';ctx.shadowBlur=4;
+  ctx.beginPath();ctx.arc(mmX+player.x*scale,mmY+player.y*scale,4,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+}
+
+// ── SCREENS ──
+function drawStart() {
+  // Animated starfield
+  ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
+  drawStarfield();
+
+  // Title
+  ctx.save();
+  ctx.shadowColor='#8b00ff';ctx.shadowBlur=30+Math.sin(frame*0.04)*10;
+  ctx.fillStyle=C.gold;ctx.font='bold 38px Georgia';ctx.textAlign='center';
+  ctx.fillText('DARK OVERLORD',W/2,H*0.22);
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#cc88ff';ctx.font='16px Georgia';
+  ctx.fillText('ARMY CONQUEST',W/2,H*0.22+36);
+  ctx.restore();
+
+  // Demo army preview
+  drawDemoArmy();
+
+  // Tap to play
+  const pulse=0.9+Math.sin(frame*0.06)*0.1;
+  ctx.save();ctx.translate(W/2,H*0.68);ctx.scale(pulse,pulse);
+  ctx.fillStyle='rgba(74,26,138,0.9)';
+  roundRect(ctx,-120,-24,240,48,12);ctx.fill();
+  ctx.strokeStyle='#8b00ff';ctx.lineWidth=2;roundRect(ctx,-120,-24,240,48,12);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 18px Georgia';ctx.textAlign='center';
+  ctx.fillText('⚡ TAP TO CONQUER',0,8);
+  ctx.restore();
+
+  // How to play
+  ctx.fillStyle='rgba(13,13,34,0.8)';
+  roundRect(ctx,W/2-160,H*0.75,320,100,10);ctx.fill();
+  ctx.fillStyle='#b0a0c0';ctx.font='12px Arial';ctx.textAlign='center';
+  ['👆 Touch to steer your army','💜 Absorb monsters to grow your chain','⚡ Double-tap right side to BOOST','👑 Steal enemies\' army by hitting their tail'].forEach((t,i)=>{
+    ctx.fillText(t,W/2,H*0.75+20+i*19);
+  });
+
+  if (highScore>0) {
+    ctx.fillStyle=C.gold;ctx.font='13px Arial';
+    ctx.fillText('Best: '+highScore,W/2,H*0.75+96);
   }
-
-  if(bs.enemy.hp<=0){bs.animating=false;setTimeout(()=>endBattle(false),600);return;}
-  setTimeout(enemyTurn,750);
 }
 
-function enemyTurn(){
-  const bs=battleState;if(!bs||bs.over)return;
-  const def=gs.player.stats.def+equipBonus('def');
-  const dmg=calcDmg(bs.enemy.atk,def);
-  gs.player.hp=Math.max(0,gs.player.hp-dmg);
-  bs.playerHitFlash=1;bs.shake=3;
-  const c=document.getElementById('battle-canvas');
-  spawnFX(c.clientWidth*.17,c.clientHeight*.45,'#ff3333',6);
-  addLog(`${bs.enemy.name} hits you for ${dmg}!`,'hit');
-  updateTopBar();
-  if(gs.player.hp<=0){
-    addLog('Defeated... but the Overlord cannot die permanently.','hit');
-    gs.player.hp=Math.floor(gs.player.maxHp*0.35);
-    gs.player.gold=Math.max(0,gs.player.gold-Math.floor(gs.player.gold*0.05));
-    bs.over=true;
-    setTimeout(()=>{navTo('world',document.getElementById('nav-world'));updateTopBar();},1500);
-    return;
+function drawDemoArmy() {
+  const cx=W/2, cy=H*0.44, r=70;
+  for(let i=0;i<12;i++){
+    const a=(frame*0.018)+i*(Math.PI*2/12);
+    const x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r*0.4;
+    const types=Object.keys(MTYPE);
+    const t=types[i%types.length];
+    const mt=MTYPE[t];
+    ctx.fillStyle=mt.col;ctx.shadowColor=mt.col;ctx.shadowBlur=6;
+    ctx.beginPath();ctx.arc(x,y,mt.size*0.8,0,Math.PI*2);ctx.fill();
   }
-  bs.animating=false;updateBattleUI();
+  ctx.shadowBlur=0;
+  // Overlord in center
+  drawOverlord(cx,cy,frame*0.02,3);
 }
 
-function endBattle(converted){
-  const bs=battleState;bs.over=true;
-  if(converted){
-    const m=createArmyMonster(bs.enemy);
-    gs.army.push(m);gs.player.totalConverts++;
-    addLog(`${bs.enemy.name} joins your army!`,'convert');
-    toast(`${m.name} joins your dark army! 👹`);
-    checkEvo(m);
-  }else{
-    const zone=bs.zone;
-    const xpG=Math.floor(zone.xpPK*(1+bs.enemy.level*0.1)*(bs.isBoss?8:1));
-    const goldG=Math.floor(zone.goldPK*(1+bs.enemy.level*0.05)*(bs.isBoss?5:1)*(0.8+Math.random()*0.4));
-    gs.player.xp+=xpG;gs.player.gold+=goldG;gs.player.totalKills++;
-    if(gs.zones[zone.id])gs.zones[zone.id].kills=(gs.zones[zone.id].kills||0)+1;
-    if(bs.isBoss){gs.zones[zone.id].bossKilled=true;unlockNextZone(zone.id);toast(`${bs.enemy.name} defeated! New zone unlocked! 🗺️`);}
-    while(gs.player.xp>=xpToLevel(gs.player.level)){
-      gs.player.xp-=xpToLevel(gs.player.level);gs.player.level++;
-      gs.player.maxHp=Math.floor(gs.player.maxHp*1.06+10);gs.player.hp=gs.player.maxHp;
-      gs.player.stats.atk=Math.floor(gs.player.stats.atk*1.05+2);
-      gs.player.stats.def=Math.floor(gs.player.stats.def*1.05+1);
-      gs.player.stats.charisma=Math.floor(gs.player.stats.charisma*1.03+1);
-      toast(`Level Up! Now Level ${gs.player.level}! ✨`);
-    }
-    addLog(`Victory! +${xpG} XP, +${goldG} gold`,'good');
-    if(Math.random()<0.18+gs.player.stats.luck*0.005){
-      const item=generateItem(zone.level);gs.inventory.push(item);
-      addLog(`Loot: ${item.icon} ${item.name} (${item.rarity})!`,'good');
-      toast(`Loot: ${item.icon} ${item.name}!`);
-    }
+function drawDead() {
+  ctx.fillStyle='rgba(7,7,16,0.85)';ctx.fillRect(0,0,W,H);
+  ctx.save();
+  ctx.fillStyle=C.eye;ctx.shadowColor=C.eye;ctx.shadowBlur=20;
+  ctx.font='bold 32px Georgia';ctx.textAlign='center';
+  ctx.fillText('DEFEATED',W/2,H*0.32);
+  ctx.shadowBlur=0;
+  ctx.fillStyle=C.gold;ctx.font='bold 22px Georgia';
+  ctx.fillText('Score: '+score,W/2,H*0.32+44);
+  if(score>=highScore && score>0){ctx.fillStyle='#ffeeaa';ctx.font='14px Georgia';ctx.fillText('✨ NEW BEST!',W/2,H*0.32+68);}
+  ctx.fillStyle='#b0a0c0';ctx.font='13px Arial';
+  ctx.fillText('Army size: '+player.army.length+' · Level '+player.level,W/2,H*0.32+90);
+  ctx.restore();
+
+  // Play Again
+  drawButton(W/2-110,H/2,220,50,'⚔️ Play Again','#4a1a8a','#cc88ff');
+  drawButton(W/2-110,H/2+70,220,50,'🏆 Rankings','#1a1a0a','#ffd700');
+}
+
+function drawScores() {
+  ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
+  drawStarfield();
+  ctx.fillStyle=C.gold;ctx.font='bold 24px Georgia';ctx.textAlign='center';
+  ctx.fillText('🏆 RANKINGS',W/2,60);
+
+  const built=buildLeaderboard();
+  built.forEach((e,i)=>{
+    const y=100+i*52, isMe=e.isMe;
+    ctx.fillStyle=isMe?'rgba(74,26,138,0.8)':'rgba(13,13,34,0.7)';
+    roundRect(ctx,W/2-160,y,320,44,8);ctx.fill();
+    if(isMe){ctx.strokeStyle='#8b00ff';ctx.lineWidth=1;roundRect(ctx,W/2-160,y,320,44,8);ctx.stroke();}
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'  ';
+    ctx.fillStyle=isMe?C.gold:'#e8d4b0';ctx.font=(isMe?'bold ':'')+'14px Arial';
+    ctx.textAlign='left';ctx.fillText(medal+' '+e.name,W/2-148,y+18);
+    ctx.textAlign='right';ctx.fillStyle=C.gold;ctx.font='bold 14px Arial';
+    ctx.fillText(e.score+' pts',W/2+152,y+18);
+    ctx.fillStyle='#b0a0c0';ctx.font='11px Arial';ctx.textAlign='left';
+    ctx.fillText('👹 army: '+e.army,W/2-148,y+34);
+  });
+
+  ctx.fillStyle='#b0a0c0';ctx.font='13px Arial';ctx.textAlign='center';
+  ctx.fillText('Tap anywhere to go back',W/2,H-30);
+}
+
+function drawStarfield() {
+  ctx.fillStyle='rgba(255,255,255,0.5)';
+  for(let i=0;i<80;i++){
+    const x=(i*137+frame*0.05)%W, y=(i*89)%H;
+    ctx.fillRect(x,y,1+(i%3===0?1:0),1+(i%5===0?1:0));
   }
-  saveGame();updateTopBar();
-  setTimeout(()=>{navTo('world',document.getElementById('nav-world'));renderWorldMap();},1000);
 }
 
-function unlockNextZone(clearedId){
-  const next=ZONES.find(z=>z.unlocksAfter===clearedId);
-  if(!next)return;
-  if(!gs.zones[next.id])gs.zones[next.id]={kills:0,bossKilled:false,unlocked:false};
-  gs.zones[next.id].unlocked=true;
+function drawButton(x,y,w,h,label,bg,col) {
+  ctx.fillStyle=bg;roundRect(ctx,x,y,w,h,10);ctx.fill();
+  ctx.strokeStyle=col;ctx.lineWidth=1.5;roundRect(ctx,x,y,w,h,10);ctx.stroke();
+  ctx.fillStyle=col;ctx.font='bold 16px Georgia';ctx.textAlign='center';
+  ctx.fillText(label,x+w/2,y+h*0.62);
 }
 
-// ─── UI ───
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
 }
 
-function navTo(id,btn){
-  currentScreen=id;
-  ['world','battle','army','inventory','rankings'].forEach(s=>{
-    const el=document.getElementById(s);if(el)el.classList.toggle('active',s===id);
-  });
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  if(id==='world')renderWorldMap();
-  else if(id==='army')renderArmyList();
-  else if(id==='inventory')renderInventory();
-  else if(id==='rankings')loadRankings();
+// ── FIREBASE ──
+let fireDb = null;
+function initFirebase() {
+  try {
+    firebase.initializeApp(FB_CFG);
+    fireDb = firebase.firestore();
+  } catch(e) {}
 }
 
-function updateTopBar(){
-  const p=gs.player;
-  document.getElementById('tb-name').textContent=p.name.substring(0,12);
-  document.getElementById('tb-level').textContent=`Lv ${p.level}`;
-  const hp=Math.max(0,Math.min(100,(p.hp/p.maxHp)*100));
-  document.getElementById('tb-hp-fill').style.width=hp+'%';
-  document.getElementById('tb-hp-txt').textContent=`${Math.ceil(p.hp)}/${p.maxHp}`;
-  document.getElementById('tb-energy-fill').style.width=((p.energy/p.maxEnergy)*100)+'%';
-  document.getElementById('tb-gold').textContent=Math.floor(p.gold).toLocaleString();
-}
-
-function updateIdleBar(){
-  document.getElementById('idle-army').textContent=gs.army.length;
-  document.getElementById('idle-gps').textContent=totalGPS().toFixed(1);
-}
-
-function renderWorldMap(){
-  const grid=document.getElementById('zone-grid');grid.innerHTML='';
-  ZONES.forEach(zone=>{
-    const zs=gs.zones[zone.id]||{kills:0,bossKilled:false,unlocked:false};
-    const unlocked=zs.unlocked,kills=zs.kills||0;
-    const bossReady=kills>=100&&!zs.bossKilled,bossDefeated=zs.bossKilled;
-    const assigned=gs.army.filter(m=>m.assignment===zone.id).length;
-    const onlineHere=Object.values(onlinePlayers).filter(p=>p.zone===zone.id).length;
-    const card=document.createElement('div');
-    card.className='zone-card'+(unlocked?'':' locked');
-    card.innerHTML=`
-      <div class="zone-header" style="background:linear-gradient(135deg,${zone.bg2},${zone.col})">
-        <div class="zone-name">${zone.name}</div>
-        ${onlineHere>0?`<div style="position:absolute;top:4px;right:4px;background:#00cc66;border-radius:8px;padding:2px 5px;font-size:.6rem;color:#fff">👁 ${onlineHere}</div>`:''}
-      </div>
-      <div class="zone-body">
-        <div class="zone-kills"><span>Kills: ${kills}/100</span><span>${bossDefeated?'✅ Boss':'⚔️ Lv '+zone.level}</span></div>
-        <div class="zone-progress"><div class="zone-progress-fill" style="width:${Math.min(100,(kills/100)*100)}%"></div></div>
-        ${assigned>0?`<div class="zone-assigned">⚔️ ${assigned} farming</div>`:''}
-        <div class="zone-btns">
-          ${unlocked?`<button class="zone-enter" onclick="startBattle('${zone.id}',false)">⚔️ Enter</button>`:`<div class="zone-locked-msg">🔒 Defeat prev boss</div>`}
-          ${bossReady?`<button class="zone-boss" onclick="startBattle('${zone.id}',true)">💀 BOSS</button>`:''}
-        </div>
-      </div>`;
-    grid.appendChild(card);
-  });
-  updateIdleBar();
-}
-
-function renderArmyList(){
-  const list=document.getElementById('army-list');
-  const asgn=gs.army.filter(m=>m.assignment).length;
-  document.getElementById('army-stats-txt').textContent=`${gs.army.length} monsters · ${asgn} assigned`;
-  document.getElementById('army-gps-display').textContent=`+${totalGPS().toFixed(1)} gold/sec`;
-  if(gs.army.length===0){
-    list.innerHTML='<div class="empty-army"><div style="font-size:2.5rem">👹</div><div>No monsters yet.<br>Convert enemies in battle!</div></div>';return;
+async function saveScore() {
+  const name = localStorage.getItem('dko_name') || player.name;
+  if (FB_ON && fireDb) {
+    try {
+      await fireDb.collection('scores').add({name,score,army:player.army.length,level:player.level,t:Date.now()});
+    } catch(e){}
   }
-  list.innerHTML='';
-  gs.army.forEach(m=>{
-    const xpPct=Math.min(100,(m.xp/xpToLevel(m.level))*100);
-    const eKey=m.type in SPR?m.type:'goblin';
-    const card=document.createElement('div');
-    card.className=`monster-card rarity-${m.rarity}`;
-    card.innerHTML=`
-      <div class="mc-top">
-        <div class="mc-sprite"><canvas id="spr-${m.id}" width="48" height="48"></canvas></div>
-        <div class="mc-info">
-          <div style="display:flex;align-items:center;gap:6px">
-            <div class="mc-name">${m.name}</div>
-            <div class="mc-lvl">Lv ${m.level}</div>
-          </div>
-          <div class="mc-type">${m.type.replace(/_/g,' ')}</div>
-          <div class="mc-xpbar"><div class="mc-xpbar-fill" style="width:${xpPct}%"></div></div>
-        </div>
-      </div>
-      <div class="mc-bottom">
-        <button class="mc-assign-btn" onclick="openAssignModal('${m.id}')">${m.assignment?'📍 '+m.assignment:'📍 Assign Zone'}</button>
-        <button class="mc-equip-btn" onclick="openMonsterEquip('${m.id}')">🎒</button>
-        ${m.pendingEvo?`<span class="evo-badge" onclick="openEvoModal('${m.id}')">✨ EVOLVE</span>`:''}
-      </div>`;
-    list.appendChild(card);
-    requestAnimationFrame(()=>{
-      const c=document.getElementById(`spr-${m.id}`);if(!c)return;
-      const ctx=c.getContext('2d');ctx.clearRect(0,0,48,48);
-      const sz=spriteSize(eKey);
-      const sc=Math.max(1,Math.floor(Math.min(44/sz.w,44/sz.h)));
-      drawSprite(ctx,eKey,Math.floor((48-sz.w*sc)/2),Math.floor((48-sz.h*sc)/2),sc,false);
-    });
-  });
 }
 
-function renderInventory(){
-  document.getElementById('inv-gold').textContent=Math.floor(gs.player.gold).toLocaleString();
-  document.getElementById('inv-count').textContent=gs.inventory.length;
-  const grid=document.getElementById('inv-grid');
-  const items=invFilter==='all'?gs.inventory:gs.inventory.filter(i=>i.type===invFilter);
-  if(items.length===0){grid.innerHTML='<div class="inv-empty">No items yet.<br>Defeat monsters to find gear!</div>';return;}
-  grid.innerHTML='';
-  items.forEach(item=>{
-    const statStr=Object.entries(item.stats).map(([k,v])=>`+${v} ${k}`).join(' ');
-    const card=document.createElement('div');
-    card.className=`item-card ${item.rarity}`;
-    card.innerHTML=`<div class="item-icon">${item.icon}</div><div class="item-name">${item.name}</div><div class="item-stats">${statStr}</div><div class="item-rarity ${item.rarity}">${item.rarity.toUpperCase()}</div>`;
-    card.onclick=()=>openItemModal(item.id);
-    grid.appendChild(card);
-  });
-}
-
-// ─── MODALS ───
-function openModal(title,html){
-  document.getElementById('modal-title').textContent=title;
-  document.getElementById('modal-body').innerHTML=html;
-  document.getElementById('modal-overlay').classList.add('open');
-}
-function closeModalOverlay(e){
-  if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('open');
-}
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
-
-function openAssignModal(mId){
-  const m=gs.army.find(x=>x.id===mId);if(!m)return;
-  const unlocked=ZONES.filter(z=>gs.zones[z.id]&&gs.zones[z.id].unlocked);
-  let html='<div class="assign-zones">';
-  if(m.assignment)html+=`<div class="assign-zone-row" style="border-color:#cc0000;color:#ff6666" onclick="assignMonster('${mId}',null)">❌ Unassign (make idle)</div>`;
-  unlocked.forEach(z=>{
-    const active=m.assignment===z.id;
-    html+=`<div class="assign-zone-row" style="${active?'border-color:var(--accent);color:#cc88ff':''}" onclick="assignMonster('${mId}','${z.id}')"><span>${z.name}</span><span style="font-size:.7rem;color:var(--muted)">Lv ${z.level} · ${(z.goldPK*0.2).toFixed(1)} gold/s/lv</span></div>`;
-  });
-  html+='</div>';
-  openModal(`Assign ${m.name}`,html);
-}
-
-function assignMonster(mId,zoneId){
-  const m=gs.army.find(x=>x.id===mId);if(!m)return;
-  m.assignment=zoneId;closeModal();
-  toast(zoneId?`${m.name} assigned to ${zoneId}!`:`${m.name} is now idle`);
-  renderArmyList();saveGame();
-}
-
-function openEvoModal(mId){
-  const m=gs.army.find(x=>x.id===mId);if(!m)return;
-  const key=`${m.evolvedFrom[0]}_${m.pendingEvo}`;
-  const opts=EVOLUTIONS[key];if(!opts)return;
-  let html='<div class="evo-options">';
-  opts.forEach(opt=>{
-    html+=`<div class="evo-opt" onclick="evolveMonster('${mId}','${opt.type}',${m.pendingEvo})">
-      <div class="evo-opt-name">${opt.name}</div>
-      <div class="evo-opt-desc">${opt.desc}</div>
-      <div class="evo-opt-stats">ATK +${opt.atkB} · DEF +${opt.defB} · SPD +${opt.spdB}</div>
-    </div>`;
-  });
-  html+='</div>';
-  openModal(`${m.name} can evolve!`,html);
-}
-
-function evolveMonster(mId,newType,thr){
-  const m=gs.army.find(x=>x.id===mId);if(!m)return;
-  const key=`${m.evolvedFrom[0]}_${thr}`;
-  const opt=(EVOLUTIONS[key]||[]).find(o=>o.type===newType);if(!opt)return;
-  m.type=newType;m.stats.atk+=opt.atkB;m.stats.def+=opt.defB;m.stats.spd+=opt.spdB;
-  m.pendingEvo=false;m[`evo${thr}`]=true;
-  m.maxHp=Math.floor(m.maxHp*1.2);m.hp=m.maxHp;
-  closeModal();toast(`${m.name} evolved into ${opt.name}! ✨`);
-  renderArmyList();saveGame();
-}
-
-function openItemModal(itemId){
-  const item=gs.inventory.find(i=>i.id===itemId);if(!item)return;
-  const statStr=Object.entries(item.stats).map(([k,v])=>`+${v} ${k.toUpperCase()}`).join(', ');
-  const sellVal=Math.max(1,Math.floor(Object.values(item.stats).reduce((s,v)=>s+v,0)*RARITY_SELL[item.rarity]));
-  openModal(item.name,`
-    <div style="text-align:center;margin-bottom:14px">
-      <div style="font-size:2.5rem">${item.icon}</div>
-      <div class="item-rarity ${item.rarity}" style="font-size:.8rem;margin:6px 0">${item.rarity.toUpperCase()}</div>
-      <div style="font-size:.82rem;color:var(--accent)">${statStr}</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-primary" onclick="equipToPlayer('${itemId}')">⚔️ Equip to yourself</button>
-      <button class="btn btn-ghost" style="border-color:#cc4400;color:#ff8844" onclick="sellItem('${itemId}',${sellVal})">💰 Sell for ${sellVal} gold</button>
-    </div>`);
-}
-
-function equipToPlayer(itemId){
-  const item=gs.inventory.find(i=>i.id===itemId);if(!item)return;
-  const prev=gs.player.equipment[item.type];
-  if(prev)gs.inventory.push(prev);
-  gs.player.equipment[item.type]=item;
-  gs.inventory=gs.inventory.filter(i=>i.id!==itemId);
-  closeModal();toast(`${item.name} equipped!`);renderInventory();saveGame();
-}
-
-function sellItem(itemId,val){
-  gs.inventory=gs.inventory.filter(i=>i.id!==itemId);
-  gs.player.gold+=val;closeModal();toast(`Sold for ${val} gold! 💰`);
-  renderInventory();updateTopBar();saveGame();
-}
-
-function openMonsterEquip(mId){
-  const m=gs.army.find(x=>x.id===mId);if(!m)return;
-  if(!gs.inventory.length){toast('No items in inventory!');return;}
-  let html='<div class="assign-zones">';
-  gs.inventory.forEach(item=>{
-    const stat=Object.entries(item.stats).map(([k,v])=>`+${v} ${k}`).join(' ');
-    html+=`<div class="assign-zone-row" onclick="equipToMonster('${mId}','${item.id}')">${item.icon} ${item.name} <span style="font-size:.7rem;color:var(--muted)">${stat}</span></div>`;
-  });
-  html+='</div>';
-  openModal(`Equip ${m.name}`,html);
-}
-
-function equipToMonster(mId,itemId){
-  const m=gs.army.find(x=>x.id===mId);const item=gs.inventory.find(i=>i.id===itemId);if(!m||!item)return;
-  const prev=m.equipment[item.type];if(prev)gs.inventory.push(prev);
-  m.equipment[item.type]=item;gs.inventory=gs.inventory.filter(i=>i.id!==itemId);
-  closeModal();toast(`${item.name} equipped to ${m.name}!`);renderArmyList();saveGame();
-}
-
-// ─── RANKINGS ───
-let rankData=[];
-async function loadRankings(){
-  const list=document.getElementById('rank-list');
-  list.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">Loading...</div>';
-  if(FB_ON&&fireDb){
-    try{
-      const field=rankTab==='level'?'level':rankTab==='army'?'armySize':'gold';
-      const snap=await fireDb.collection('players').orderBy(field,'desc').limit(50).get();
-      rankData=snap.docs.map(d=>d.data());
-    }catch(e){rankData=genFakeRankings();}
-  }else{rankData=genFakeRankings();}
-  const myUid=currentUser?.uid||'local';
-  if(!rankData.find(r=>r.uid===myUid||r.name===gs.player.name)){
-    rankData.push({name:gs.player.name,level:gs.player.level,armySize:gs.army.length,gold:Math.floor(gs.player.gold),uid:myUid});
+async function loadLeaderboard() {
+  if (FB_ON && fireDb) {
+    try {
+      const snap = await fireDb.collection('scores').orderBy('score','desc').limit(20).get();
+      leaderboard = snap.docs.map(d=>d.data());
+      return;
+    } catch(e){}
   }
-  const field=rankTab==='level'?'level':rankTab==='army'?'armySize':'gold';
-  rankData.sort((a,b)=>b[field]-a[field]);
-  renderRankList();
 }
 
-function renderRankList(){
-  const list=document.getElementById('rank-list');list.innerHTML='';
-  const myUid=currentUser?.uid||'local';
-  const field=rankTab==='level'?'level':rankTab==='army'?'armySize':'gold';
-  rankData.slice(0,50).forEach((p,i)=>{
-    const isMe=p.uid===myUid||p.name===gs.player.name;
-    const row=document.createElement('div');
-    row.className='rank-row'+(isMe?' me':'');
-    let nc='rank-num'+(i===0?' gold-r':i===1?' silver-r':i===2?' bronze-r':'');
-    const val=field==='gold'?Math.floor(p[field]||0).toLocaleString():(p[field]||0);
-    const label=field==='level'?`Lv ${val}`:field==='army'?`${val} 👹`:`${val} 💰`;
-    row.innerHTML=`<div class="${nc}">${i+1}</div><div class="rank-name">${p.name}${isMe?' (you)':''}</div><div class="rank-val">${label}</div>`;
-    list.appendChild(row);
-  });
+// ── GAME LOOP ──
+function loop() {
+  if (gamePhase==='play') update();
+  draw();
+  requestAnimationFrame(loop);
 }
 
-function setRankTab(tab,el){
-  rankTab=tab;document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');loadRankings();
-}
-
-function setInvFilter(filter,el){
-  invFilter=filter;document.querySelectorAll('.inv-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderInventory();
-}
-
-const FAKE_NAMES=['ShadowReaper','VoidLord','NightBane','CursedKing','DarkMage','GrimSoul','ObsidianLord',
-  'NecroKing','PhantomEdge','ChaosLord','BloodMoon','AshCrown','VoidWalker','SoulRipper','DarkHarbinger',
-  'GraveWarden','NightStalker','HexMaster','AbyssLord','DoomBringer','ShadowKnight','BoneCrown','GrimReaper',
-  'VoidEater','CurseMaster','DarkShroud','NightRaider','PhantomWolf','SoulBinder','HexLord'];
-
-function genFakeRankings(){
-  return FAKE_NAMES.map((name,i)=>({
-    name,uid:'fake_'+i,
-    level:Math.max(1,180-i*5+Math.floor(Math.random()*10)),
-    armySize:Math.floor(Math.random()*60)+2,
-    gold:Math.floor(Math.random()*500000)
-  }));
-}
-
-// ─── TOAST ───
-let toastTimer;
-function toast(msg){
-  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
-}
-
-// ─── AUTH BACKGROUND CANVAS ───
-function initAuthBG(){
-  const canvas=document.getElementById('auth-bg');if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
-  resize();window.addEventListener('resize',resize);
-  const pts=Array.from({length:55},()=>({
-    x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
-    vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,
-    size:1+Math.random()*2,alpha:.1+Math.random()*.5,
-    col:['#8b00ff','#ffd700','#ff3333','#4488ff'][Math.floor(Math.random()*4)]
-  }));
-  function frame(){
-    if(!document.getElementById('auth').classList.contains('active')){requestAnimationFrame(frame);return;}
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    pts.forEach(p=>{
-      p.x=(p.x+p.vx+canvas.width)%canvas.width;p.y=(p.y+p.vy+canvas.height)%canvas.height;
-      ctx.globalAlpha=p.alpha;ctx.fillStyle=p.col;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
-    });
-    ctx.globalAlpha=1;requestAnimationFrame(frame);
-  }
-  frame();
-}
-
-// ─── AUTH ───
-let authMode='login';
-function setupAuth(){
-  document.getElementById('auth-toggle-btn').onclick=()=>{
-    authMode=authMode==='login'?'register':'login';
-    const reg=authMode==='register';
-    document.getElementById('auth-name').style.display=reg?'block':'none';
-    document.getElementById('auth-main-btn').textContent=reg?'⚔️ RISE AS OVERLORD':'⚡ ENTER THE DARKNESS';
-    document.getElementById('auth-toggle-btn').innerHTML=reg?'Have account? <span style="color:var(--accent);text-decoration:underline">Sign in</span>':'No account? <span style="color:var(--accent);text-decoration:underline">Create one</span>';
-  };
-  document.getElementById('auth-main-btn').onclick=async()=>{
-    const email=document.getElementById('auth-email').value.trim();
-    const pass=document.getElementById('auth-pass').value;
-    const errEl=document.getElementById('auth-err');errEl.textContent='';
-    if(!email||!pass){errEl.textContent='Please enter email and password.';return;}
-    if(!FB_ON){
-      gs=DEFAULT_STATE();
-      if(authMode==='register')gs.player.name=document.getElementById('auth-name').value.trim()||'Dark Overlord';
-      startGame();return;
-    }
-    const btn=document.getElementById('auth-main-btn');btn.disabled=true;btn.textContent='...';
-    try{
-      if(authMode==='login'){await firebase.auth().signInWithEmailAndPassword(email,pass);}
-      else{
-        await firebase.auth().createUserWithEmailAndPassword(email,pass);
-        gs.player.name=document.getElementById('auth-name').value.trim()||'Dark Overlord';
-      }
-    }catch(e){
-      errEl.textContent=e.message.replace('Firebase: ','').replace(/\(auth.*?\)/,'');
-      btn.disabled=false;btn.textContent=authMode==='login'?'⚡ ENTER THE DARKNESS':'⚔️ RISE AS OVERLORD';
-    }
-  };
-  document.getElementById('auth-guest-btn').onclick=async()=>{
-    if(!FB_ON){gs=DEFAULT_STATE();startGame();return;}
-    try{await firebase.auth().signInAnonymously();}catch(e){gs=DEFAULT_STATE();startGame();}
-  };
-}
-
-// ─── PRESENCE ───
-function initPresence(){
-  if(!fireRtdb||!currentUser)return;
-  const ref=fireRtdb.ref(`presence/${currentUser.uid}`);
-  ref.set({name:gs.player.name,level:gs.player.level,zone:gs.player.currentZone,t:firebase.database.ServerValue.TIMESTAMP});
-  ref.onDisconnect().remove();
-  fireRtdb.ref('presence').on('value',snap=>{
-    onlinePlayers=snap.val()||{};
-    if(currentScreen==='world')renderWorldMap();
-  });
-}
-
-function startGame(){
-  lastTick=Date.now();
-  showScreen('game');
-  navTo('world',document.getElementById('nav-world'));
-  updateTopBar();renderWorldMap();
-  const gains=calcOfflineGains();
-  if(gains){
-    setTimeout(()=>{
-      let html='<div class="gains-popup"><div class="gains-title">⏰ Welcome Back!</div>';
-      html+=`<div style="color:var(--muted);font-size:.78rem;margin-bottom:10px">Away for ${gains.time} minutes</div>`;
-      html+='<div class="gains-rows">';
-      gains.details.slice(0,5).forEach(d=>{html+=`<div class="gains-row"><span>${d.name}</span><span>+${d.gold} gold</span></div>`;});
-      html+=`</div><div style="color:var(--gold);font-size:1rem;font-weight:bold;margin:8px 0">Total: +${gains.gold} gold</div>`;
-      html+=`<button class="btn btn-primary" onclick="closeModal()">✨ Claim</button></div>`;
-      openModal('Offline Gains',html);updateTopBar();saveGame();
-    },800);
-  }
-  if(idleInterval)clearInterval(idleInterval);
-  idleInterval=setInterval(tickIdle,1500);
-  if(FB_ON&&currentUser)initPresence();
-}
-
-// ─── INIT ───
-document.addEventListener('DOMContentLoaded',()=>{
-  showScreen('loading');setupAuth();initAuthBG();
-  if(FB_ON){
-    try{
-      firebase.initializeApp(FIREBASE_CONFIG);
-      fireDb=firebase.firestore();fireRtdb=firebase.database();
-      firebase.auth().onAuthStateChanged(async user=>{
-        if(user){currentUser=user;await loadGame();startGame();}
-        else{setTimeout(()=>showScreen('auth'),1200);}
-      });
-    }catch(e){console.warn('Firebase error, going offline:',e);localStart();}
-  }else{localStart();}
-});
-
-function localStart(){
-  setTimeout(()=>{
-    const s=localStorage.getItem('darkOverlord_v2');
-    if(s){try{gs=JSON.parse(s);startGame();}catch(e){gs=DEFAULT_STATE();showScreen('auth');}}
-    else{showScreen('auth');}
-  },1400);
-}
+// ── BOOT ──
+window.addEventListener('load', init);
 </script>
 </body>
 </html>
